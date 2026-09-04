@@ -1801,8 +1801,8 @@ function Feedback({ navigate }) {
 ========================================================= */
 
 function App() {
-  const [page, setPage] = useState("dashboard");
-
+  const [page, setPage] = useState("login");
+  
   const [selectedProblem, setSelectedProblem] =
     useState(null);
 
