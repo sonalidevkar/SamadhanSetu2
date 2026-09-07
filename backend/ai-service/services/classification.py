@@ -1,8 +1,16 @@
+from services.keyword_extraction import extract_keywords
+
+
 def classify_problem(text: str) -> dict:
+    """
+    Detect the category, sub-category, solution domain,
+    and extract important keywords from a problem description.
+    """
 
     text_lower = text.lower()
 
     categories = {
+
         "Agriculture": [
             "farmer", "farmers", "farm", "farming",
             "crop", "crops", "agriculture",
@@ -104,9 +112,10 @@ def classify_problem(text: str) -> dict:
         ]
     }
 
+    # Store scores for every category
     category_scores = {}
-    detected_keywords = []
 
+    # Check every category
     for category, keywords in categories.items():
 
         score = 0
@@ -115,10 +124,10 @@ def classify_problem(text: str) -> dict:
 
             if keyword.lower() in text_lower:
                 score += 1
-                detected_keywords.append(keyword)
 
         category_scores[category] = score
 
+    # Find the highest-scoring category
     best_category = max(
         category_scores,
         key=category_scores.get
@@ -126,40 +135,110 @@ def classify_problem(text: str) -> dict:
 
     best_score = category_scores[best_category]
 
-    # If no category is matched
+    # If no category matches
     if best_score == 0:
         best_category = "Other"
 
-    # Remove duplicate keywords
-    detected_keywords = list(set(detected_keywords))
+    # Extract important keywords from the complete text
+    detected_keywords = extract_keywords(text)
 
-    # Simple subcategory
+    # Default sub-category
     sub_category = "General"
 
+    # Water sub-categories
     if best_category == "Water Management":
-        if "drinking water" in text_lower or "clean water" in text_lower:
+
+        if (
+            "drinking water" in text_lower
+            or "clean water" in text_lower
+        ):
             sub_category = "Drinking Water"
+
         elif "pipeline" in text_lower:
             sub_category = "Pipeline Issue"
 
+        elif "leakage" in text_lower:
+            sub_category = "Water Leakage"
+
+        elif "shortage" in text_lower:
+            sub_category = "Water Shortage"
+
+    # Infrastructure sub-categories
     elif best_category == "Transportation & Infrastructure":
-        if "pothole" in text_lower or "road" in text_lower:
+
+        if (
+            "pothole" in text_lower
+            or "road" in text_lower
+        ):
             sub_category = "Road Maintenance"
+
         elif "bus" in text_lower:
             sub_category = "Public Transport"
 
+        elif "bridge" in text_lower:
+            sub_category = "Bridge Infrastructure"
+
+    # Sanitation sub-categories
     elif best_category == "Sanitation & Waste Management":
+
         if "garbage" in text_lower:
             sub_category = "Garbage Collection"
-        elif "drainage" in text_lower or "drain" in text_lower:
+
+        elif (
+            "drainage" in text_lower
+            or "drain" in text_lower
+        ):
             sub_category = "Drainage Issue"
 
+        elif "toilet" in text_lower:
+            sub_category = "Public Sanitation"
+
+    # Agriculture sub-categories
     elif best_category == "Agriculture":
+
         if "crop" in text_lower:
             sub_category = "Crop Issue"
+
         elif "irrigation" in text_lower:
             sub_category = "Irrigation"
 
+        elif "soil" in text_lower:
+            sub_category = "Soil Issue"
+
+    # Healthcare sub-categories
+    elif best_category == "Healthcare":
+
+        if "hospital" in text_lower:
+            sub_category = "Hospital Services"
+
+        elif "doctor" in text_lower:
+            sub_category = "Doctor Availability"
+
+        elif "medicine" in text_lower:
+            sub_category = "Medicine Availability"
+
+    # Education sub-categories
+    elif best_category == "Education":
+
+        if "school" in text_lower:
+            sub_category = "School Facilities"
+
+        elif "teacher" in text_lower:
+            sub_category = "Teacher Availability"
+
+        elif "scholarship" in text_lower:
+            sub_category = "Scholarship Issue"
+
+    # Electricity sub-categories
+    elif best_category == "Electricity & Energy":
+
+        if "power cut" in text_lower:
+            sub_category = "Power Outage"
+
+        elif "street light" in text_lower:
+            sub_category = "Street Lighting"
+
+    # Return complete classification result
     return {
         "category": best_category,
         "sub_category": sub_category,
