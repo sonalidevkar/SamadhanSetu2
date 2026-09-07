@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./style.css";
 
 /* =========================================================
@@ -807,6 +807,154 @@ function Profile({ user, updateUser, logout, goHome, t }) {
   );
 }
 
+function VoiceInput({
+  value,
+  onChange,
+  language = "en",
+  t
+}) {
+  const [listening, setListening] = useState(false);
+
+  const voiceLanguages = {
+    en: "en-IN",
+    mr: "mr-IN",
+    hi: "hi-IN"
+  };
+
+  const startVoiceInput = () => {
+    const SpeechRecognition =
+      window.SpeechRecognition ||
+      window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert(
+        "Voice input is not supported. Please use Google Chrome."
+      );
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+
+    // Select voice language automatically
+    recognition.lang =
+      voiceLanguages[language] || "en-IN";
+
+    recognition.continuous = false;
+    recognition.interimResults = true;
+
+    recognition.onstart = () => {
+      setListening(true);
+    };
+
+    recognition.onresult = (event) => {
+      let transcript = "";
+
+      for (
+        let i = event.resultIndex;
+        i < event.results.length;
+        i++
+      ) {
+        transcript +=
+          event.results[i][0].transcript;
+      }
+
+      // Add voice text to existing text
+      const newText = value
+        ? `${value} ${transcript}`
+        : transcript;
+
+      onChange({
+        target: {
+          value: newText
+        }
+      });
+    };
+
+    recognition.onerror = (event) => {
+      console.log(
+        "Speech recognition error:",
+        event.error
+      );
+
+      setListening(false);
+
+      if (event.error === "not-allowed") {
+        alert(
+          "Microphone permission denied. Please allow microphone access."
+        );
+      }
+    };
+
+    recognition.onend = () => {
+      setListening(false);
+    };
+
+    recognition.start();
+  };
+
+  const getButtonText = () => {
+    if (listening) {
+      if (language === "mr") return "🔴 ऐकत आहे...";
+      if (language === "hi") return "🔴 सुन रहा है...";
+      return "🔴 Listening...";
+    }
+
+    if (language === "mr") return "🎤 बोला";
+    if (language === "hi") return "🎤 बोलें";
+
+    return "🎤 Speak";
+  };
+
+  const getPlaceholder = () => {
+    if (language === "mr") {
+      return "तुमची समस्या येथे लिहा किंवा बोला...";
+    }
+
+    if (language === "hi") {
+      return "अपनी समस्या यहां लिखें या बोलें...";
+    }
+
+    return "Describe your problem or speak...";
+  };
+
+  return (
+    <div className="voice-input-wrapper">
+
+      <textarea
+        value={value}
+        onChange={onChange}
+        placeholder={getPlaceholder()}
+        rows={6}
+      />
+
+      <button
+        type="button"
+        className={`voice-btn ${listening ? "voice-listening" : ""
+          }`}
+        onClick={startVoiceInput}
+      >
+        {getButtonText()}
+      </button>
+
+      {listening && (
+        <div className="voice-status">
+
+          {language === "mr" &&
+            "🎙️ कृपया तुमची समस्या सांगा..."}
+
+          {language === "hi" &&
+            "🎙️ कृपया अपनी समस्या बताएं..."}
+
+          {language === "en" &&
+            "🎙️ Please speak your problem..."}
+
+        </div>
+      )}
+
+    </div>
+  );
+}
+
 /* =========================================================
    SUBMIT PROBLEM
 ========================================================= */
@@ -1471,9 +1619,8 @@ function Tracker({ problem, navigate, t }) {
         <div className="timeline">
           {tracking.map((step, index) => (
             <div
-              className={`timeline-item ${
-                step.completed ? "completed" : ""
-              }`}
+              className={`timeline-item ${step.completed ? "completed" : ""
+                }`}
               key={index}
             >
               <div className="timeline-dot">
@@ -1802,7 +1949,7 @@ function Feedback({ navigate }) {
 
 function App() {
   const [page, setPage] = useState("login");
-  
+
   const [selectedProblem, setSelectedProblem] =
     useState(null);
 
