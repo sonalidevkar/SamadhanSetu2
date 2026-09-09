@@ -3,109 +3,190 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-function Login() {
-  const { login } = useAuth();
+const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    if (error) {
+      setError("");
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     setError("");
 
-    if (!email.trim() || !password.trim()) {
+    const email = formData.email.trim().toLowerCase();
+    const password = formData.password.trim();
+
+    if (!email || !password) {
       setError("Please enter email and password.");
       return;
     }
 
-    const result = login(email.trim(), password);
+    try {
+      setLoading(true);
 
-    if (result.success) {
-      navigate("/dashboard", { replace: true });
-    } else {
-      setError(result.message || "Invalid email or password.");
+      console.log("LOGIN ATTEMPT:", email);
+
+      const result = await login(email, password);
+
+      console.log("LOGIN RESULT:", result);
+
+      if (!result?.success) {
+        setError(
+          result?.message || "Invalid email or password."
+        );
+        return;
+      }
+
+      const role = String(
+        result?.user?.role || ""
+      ).toLowerCase();
+
+      console.log("USER ROLE:", role);
+
+      switch (role) {
+        case "admin":
+          navigate("/admin", {
+            replace: true,
+          });
+          break;
+
+        case "college":
+          navigate("/college-dashboard", {
+            replace: true,
+          });
+          break;
+
+        case "industry":
+          navigate("/industry-dashboard", {
+            replace: true,
+          });
+          break;
+
+        case "citizen":
+        default:
+          navigate("/dashboard", {
+            replace: true,
+          });
+          break;
+      }
+    } catch (error) {
+      console.error("LOGIN ERROR:", error);
+
+      setError(
+        error?.message ||
+          "Unable to connect to the server. Please try again."
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
+    <div className="login-page">
+      <div className="login-container">
 
-        {/* Logo */}
-        <div className="auth-logo">
-          🏛️
+        <div className="login-header">
+          <h1>Welcome to SamadhanSetu</h1>
+
+          <p>
+            Login to report and track community problems.
+          </p>
         </div>
 
-        <h1>Welcome to SamadhanSetu</h1>
-
-        <p className="auth-subtitle">
-          Login to report and track community problems.
-        </p>
-
-        {/* Error */}
         {error && (
-          <div className="auth-error">
+          <div
+            className="login-error"
+            role="alert"
+          >
             ❌ {error}
           </div>
         )}
 
-        {/* Login Form */}
-        <form onSubmit={handleSubmit}>
+        <form
+          className="login-form"
+          onSubmit={handleSubmit}
+        >
 
           <div className="form-group">
-            <label>Email</label>
+            <label htmlFor="email">
+              Email
+            </label>
 
             <input
+              id="email"
+              name="email"
               type="email"
+              value={formData.email}
+              onChange={handleChange}
               placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
+              disabled={loading}
+              required
             />
           </div>
 
           <div className="form-group">
-            <label>Password</label>
+            <label htmlFor="password">
+              Password
+            </label>
 
             <input
+              id="password"
+              name="password"
               type="password"
+              value={formData.password}
+              onChange={handleChange}
               placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
               autoComplete="current-password"
+              disabled={loading}
+              required
             />
           </div>
 
           <button
             type="submit"
-            className="auth-submit-btn"
+            className="login-button"
+            disabled={loading}
           >
-            🔐 Login
+            {loading
+              ? "🔄 Logging in..."
+              : "🔐 Login"}
           </button>
-
         </form>
 
-        {/* Create Account */}
-        <div className="create-account-section">
+        <div className="login-register">
           <p>
-            Don't have an account?
+            Don't have an account?{" "}
+            <Link to="/register">
+              Register here
+            </Link>
           </p>
-
-          <Link
-            to="/register"
-            className="create-account-link"
-          >
-            📝 Create an account
-          </Link>
         </div>
 
       </div>
     </div>
   );
-}
+};
 
 export default Login;
 

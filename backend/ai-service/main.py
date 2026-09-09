@@ -13,9 +13,12 @@ from services.classification import classify_problem
 from services.priority_detection import detect_priority
 from services.expertise_matching import get_required_expertise
 from services.duplicate_detection import calculate_similarities
-
 from services.chatbot import get_chatbot_response
 
+
+# =========================================================
+# APP
+# =========================================================
 
 app = FastAPI(
     title="Samadhan Setu AI Service",
@@ -46,7 +49,7 @@ class ChatRequest(BaseModel):
 
 
 # =========================================================
-# HOME
+# HOME API
 # =========================================================
 
 @app.get("/")
@@ -63,32 +66,29 @@ def read_root():
 @app.post("/analyze", response_model=AnalyzeResponse)
 def analyze_problem(request: ProblemRequest):
 
-    # Classification
-    category, sub_category = classify_problem(
-        request.text
-    )
+    # 1. Classify category, subcategory,
+    #    solution domain and keywords
+    classification = classify_problem(request.text)
 
-    # Priority
-    priority, severity = detect_priority(
-        request.text
-    )
+    # 2. Detect priority and severity
+    priority_info = detect_priority(request.text)
 
-    # Required expertise
+    # 3. Find required expertise
     expertise = get_required_expertise(
-        category,
+        classification["category"],
         request.text
     )
 
-    # Return complete AI analysis
-    return {
-        "category": category,
-        "subCategory": sub_category,
-        "severity": severity,
-        "priority": priority,
-        "keywords": [],
-        "requiredExpertise": expertise,
-        "solutionDomain": category,
-    }
+    # 4. Return complete analysis
+    return AnalyzeResponse(
+        category=classification["category"],
+        subCategory=classification["sub_category"],
+        severity=priority_info["severity"],
+        priority=priority_info["priority"],
+        keywords=classification["keywords"],
+        requiredExpertise=expertise,
+        solutionDomain=classification["solution_domain"],
+    )
 
 
 # =========================================================
@@ -99,15 +99,16 @@ def analyze_problem(request: ProblemRequest):
     "/duplicate-check",
     response_model=DuplicateCheckResponse
 )
-def duplicate_check(
-    request: DuplicateCheckRequest,
-):
+def duplicate_check(request: DuplicateCheckRequest):
 
-    result = calculate_similarities(
-        request.text
+    scores = calculate_similarities(
+        request.new_problem_text,
+        request.existing_problems_texts
     )
 
-    return result
+    return DuplicateCheckResponse(
+        similarity_scores=scores
+    )
 
 
 # =========================================================
@@ -124,8 +125,6 @@ def chat(request: ChatRequest):
             "response": "Please enter a message."
         }
 
-    result = get_chatbot_response(
-        user_message
-    )
+    result = get_chatbot_response(user_message)
 
     return result

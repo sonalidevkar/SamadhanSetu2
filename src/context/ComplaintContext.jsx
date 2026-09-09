@@ -1,4 +1,3 @@
-
 import React, {
   createContext,
   useContext,
@@ -8,795 +7,344 @@ import React, {
 
 import { useAuth } from "./AuthContext";
 
-import {
-  findBestAssignment,
-  organizationDirectory,
-} from "../data/assignmentRules";
-
 const ComplaintContext = createContext(null);
 
 /* =========================================================
-   FIND NEAREST SUITABLE COLLEGE
+   HELPERS
 ========================================================= */
 
-function findNearbyCollege(complaint) {
-  const latitude =
-    complaint?.latitude ??
-    complaint?.location?.latitude ??
-    null;
+const createId = (prefix = "ID") =>
+  `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-  const longitude =
-    complaint?.longitude ??
-    complaint?.location?.longitude ??
-    null;
+const getStoredArray = (key, fallback = []) => {
+  try {
+    const saved = localStorage.getItem(key);
 
-  if (
-    latitude == null ||
-    longitude == null ||
-    latitude === "" ||
-    longitude === ""
-  ) {
-    return null;
+    if (!saved) return fallback;
+
+    const parsed = JSON.parse(saved);
+
+    return Array.isArray(parsed) ? parsed : fallback;
+  } catch (error) {
+    console.error(`Error reading ${key}:`, error);
+    return fallback;
+  }
+};
+
+const saveArray = (key, data) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (error) {
+    console.error(`Error saving ${key}:`, error);
+  }
+};
+
+const getLocationText = (location) => {
+  if (!location) return "";
+
+  if (typeof location === "string") {
+    return location;
   }
 
-  const numericLatitude = Number(latitude);
-  const numericLongitude = Number(longitude);
-
-  if (
-    Number.isNaN(numericLatitude) ||
-    Number.isNaN(numericLongitude)
-  ) {
-    return null;
-  }
-
-  const category = String(
-    complaint?.category || ""
-  ).toLowerCase();
-
-  const civilKeywords = [
-    "civil",
-    "road",
-    "infrastructure",
-    "drainage",
-    "building",
-    "construction",
-    "water",
-  ];
-
-  const isCivilProblem = civilKeywords.some(
-    (word) => category.includes(word)
-  );
-
-  if (!isCivilProblem) {
-    return null;
-  }
-
-  const colleges = organizationDirectory
-    .filter(
-      (org) =>
-        org.type === "College" &&
-        org.latitude != null &&
-        org.longitude != null
-    )
-    .map((org) => {
-      const distance = calculateDistanceKm(
-        numericLatitude,
-        numericLongitude,
-        Number(org.latitude),
-        Number(org.longitude)
-      );
-
-      const keywordMatch =
-        org.keywords?.some(
-          (keyword) =>
-            category.includes(
-              String(keyword).toLowerCase()
-            )
-        ) || false;
-
-      return {
-        ...org,
-        distance,
-        keywordMatch,
-      };
-    })
-    .sort((a, b) => {
-      if (
-        a.keywordMatch &&
-        !b.keywordMatch
-      ) {
-        return -1;
-      }
-
-      if (
-        !a.keywordMatch &&
-        b.keywordMatch
-      ) {
-        return 1;
-      }
-
-      return a.distance - b.distance;
-    });
-
-  return colleges[0] || null;
-}
-
-/* =========================================================
-   DISTANCE
-========================================================= */
-
-function calculateDistanceKm(
-  lat1,
-  lon1,
-  lat2,
-  lon2
-) {
-  const R = 6371;
-
-  const dLat =
-    ((lat2 - lat1) * Math.PI) / 180;
-
-  const dLon =
-    ((lon2 - lon1) * Math.PI) / 180;
-
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(
-      (lat1 * Math.PI) / 180
-    ) *
-      Math.cos(
-        (lat2 * Math.PI) / 180
-      ) *
-      Math.sin(dLon / 2) ** 2;
-
-  const c =
-    2 *
-    Math.atan2(
-      Math.sqrt(a),
-      Math.sqrt(1 - a)
+  if (typeof location === "object") {
+    return (
+      location.exactLocation ||
+      (location.latitude != null &&
+      location.longitude != null
+        ? `${location.latitude}, ${location.longitude}`
+        : "")
     );
+  }
 
-  return R * c;
-}
+  return "";
+};
+
 
 /* =========================================================
    PROVIDER
 ========================================================= */
 
-export function ComplaintProvider({
-  children,
-}) {
-  const {
-    user,
-    addRewardPoints,
-    resetRewards,
-  } = useAuth();
+export function ComplaintProvider({ children }) {
+  const { user, addRewardPoints } = useAuth();
+
+  const [complaints, setComplaints] = useState(() =>
+    getStoredArray("complaints", [])
+  );
+
+  const [notifications, setNotifications] = useState(() =>
+    getStoredArray("portalNotifications", [])
+  );
+
+  const [certificates, setCertificates] = useState(() =>
+    getStoredArray("collegeCertificates", [])
+  );
+
 
   /* =======================================================
-     COMPLAINT STATE
+     SAVE COMPLAINTS
   ======================================================= */
-
-  const [complaints, setComplaints] =
-    useState(() => {
-      const saved =
-        localStorage.getItem(
-          "complaints"
-        );
-
-      try {
-        return saved
-          ? JSON.parse(saved)
-          : [];
-      } catch {
-        return [];
-      }
-    });
-
-  /* =======================================================
-     NOTIFICATION STATE
-  ======================================================= */
-
-  const [
-    notifications,
-    setNotifications,
-  ] = useState(() => {
-    const saved =
-      localStorage.getItem(
-        "portalNotifications"
-      );
-
-    try {
-      return saved
-        ? JSON.parse(saved)
-        : [];
-    } catch {
-      return [];
-    }
-  });
-
-  /* =======================================================
-     CERTIFICATE STATE
-  ======================================================= */
-
-  const [
-    certificates,
-    setCertificates,
-  ] = useState(() => {
-    const saved =
-      localStorage.getItem(
-        "collegeCertificates"
-      );
-
-    try {
-      return saved
-        ? JSON.parse(saved)
-        : [];
-    } catch {
-      return [];
-    }
-  });
-
-  /* =========================================================
-     SIH DEMO COLLEGE REQUEST
-  ========================================================= */
 
   useEffect(() => {
-    const savedComplaints =
-      JSON.parse(
-        localStorage.getItem(
-          "complaints"
-        ) || "[]"
-      );
+    saveArray("complaints", complaints);
+  }, [complaints]);
 
-    const demoExists =
-      savedComplaints.some(
-        (item) =>
-          item.id ===
-          "CMP-SIH-COLLEGE-001"
-      );
 
-    if (demoExists) {
-      return;
-    }
+  /* =======================================================
+     SAVE NOTIFICATIONS
+  ======================================================= */
 
-    const demoNow =
-      new Date().toLocaleString();
+  useEffect(() => {
+    saveArray(
+      "portalNotifications",
+      notifications
+    );
+  }, [notifications]);
 
-    const demoComplaint = {
+
+  /* =======================================================
+     SAVE CERTIFICATES
+  ======================================================= */
+
+  useEffect(() => {
+    saveArray(
+      "collegeCertificates",
+      certificates
+    );
+  }, [certificates]);
+
+
+  /* =======================================================
+     ADD NOTIFICATION
+  ======================================================= */
+
+  const addNotification = ({
+    title,
+    message,
+    type = "info",
+    audience = "citizen",
+    complaintId = null,
+    mobile = "",
+  }) => {
+    const notification = {
+      id: createId("NOT"),
+      title,
+      message,
+      type,
+      audience,
+      complaintId,
+      mobile,
+      read: false,
+      date: new Date().toLocaleString(),
+      createdAt: new Date().toISOString(),
+    };
+
+    setNotifications((prev) => [
+      notification,
+      ...prev,
+    ]);
+
+    return notification;
+  };
+
+
+  /* =======================================================
+     ADD COMPLAINT
+  ======================================================= */
+
+  const addComplaint = (complaintData) => {
+    const complaint = {
       id:
-        "CMP-SIH-COLLEGE-001",
+        complaintData.id ||
+        createId("CMP"),
 
-      isDemo: true,
+      ...complaintData,
 
-      /* CITIZEN */
+      status:
+        complaintData.status ||
+        "Submitted",
 
-      fullName:
-        "Rahul Patil",
-
-      email:
-        "rahul.demo@gmail.com",
-
-      mobile:
-        "9876543210",
-
-      city:
-        "Solapur",
-
-      district:
-        "Solapur",
-
-      state:
-        "Maharashtra",
-
-      pincode:
-        "413001",
-
-      address:
-        "Hotgi Road, Solapur, Maharashtra",
-
-      /* PROBLEM */
-
-      title:
-        "Damaged Road Near College Gate",
-
-      category:
-        "Road & Infrastructure",
-
-      subcategory:
-        "Pothole / Damaged Road",
-
-      description:
-        "The road near the college gate has several large potholes. During rain, water collects in the potholes and creates difficulty for students, pedestrians and two-wheelers.",
-
-      exactLocation:
-        "Hotgi Road, Near Engineering College Gate, Solapur",
-
-      landmark:
-        "Near College Main Gate",
-
-      ward:
-        "Ward 12",
-
-      problemDate:
-        "2026-09-08",
-
-      priority:
-        "High",
-
-      affectedPeople:
-        "250",
-
-      impact:
-        "Students, faculty members and local residents face daily difficulty while travelling on this road.",
-
-      previousComplaint:
-        "No",
-
-      previousComplaintId:
-        "",
-
-      /* LOCATION */
-
-      latitude:
-        "17.6599",
-
-      longitude:
-        "75.9064",
-
-      location: {
-        latitude:
-          "17.6599",
-
-        longitude:
-          "75.9064",
-
-        exactLocation:
-          "Hotgi Road, Near Engineering College Gate, Solapur",
-      },
-
-      /* DEPARTMENT */
-
-      department:
-        "Public Works / Municipal Engineering",
-
-      /* COLLEGE ASSIGNMENT */
+      createdAt:
+        complaintData.createdAt ||
+        new Date().toLocaleString(),
 
       assignedTo:
-        "Karmala Engineering College",
+        complaintData.assignedTo ||
+        null,
 
       assignedType:
-        "College",
+        complaintData.assignedType ||
+        null,
 
-      assignedCategory:
-        "Road & Infrastructure",
-
-      assignmentScore:
-        95,
+      assignedAt:
+        complaintData.assignedAt ||
+        null,
 
       assignmentReason:
-        "AI matched this road-related problem with a nearby engineering college having a Civil Engineering student team.",
+        complaintData.assignmentReason ||
+        "",
 
-      service:
-        "Road Inspection & Civil Engineering Support",
-
-      team:
-        "Civil Engineering Student Team",
+      assignmentScore:
+        complaintData.assignmentScore ??
+        null,
 
       distanceKm:
-        1.8,
-
-      assignedLatitude:
-        "17.6710",
-
-      assignedLongitude:
-        "75.9100",
-
-      organizationId:
-        "college-demo-001",
-
-      /* COLLEGE REQUEST */
-
-      collegeRequest: {
-        status:
-          "Pending",
-
-        collegeName:
-          "Karmala Engineering College",
-
-        collegeType:
-          "College",
-
-        sentAt:
-          demoNow,
-
-        respondedAt:
-          null,
-
-        responseBy:
-          null,
-
-        message:
-          "A citizen has reported a road and infrastructure problem near the college. Can your college or student team support the solution?",
-      },
+        complaintData.distanceKm ??
+        null,
 
       collegeAccepted:
         false,
 
-      /* AI ANALYSIS */
-
-      aiAnalysis: {
-        analyzed:
-          true,
-
-        analyzedAt:
-          demoNow,
-
-        category:
-          "Road & Infrastructure",
-
-        recommendation:
-          "Karmala Engineering College - Civil Engineering Student Team",
-      },
-
-      /* REWARD */
-
-      rewardPointsEarned:
-        0,
-
-      /* CERTIFICATE */
-
-      certificateIssued:
+      industryAccepted:
         false,
 
-      certificateId:
+      rejectedByCollege:
+        false,
+
+      rejectedByIndustry:
+        false,
+
+      collegeStatus:
+        complaintData.collegeStatus ||
         null,
 
-      /* STATUS */
+      industryStatus:
+        complaintData.industryStatus ||
+        null,
 
-      status:
-        "Awaiting College Response",
+      collegeRequest:
+        null,
 
-      createdAt:
-        new Date().toLocaleDateString(),
-
-      /* HISTORY */
+      industryRequest:
+        null,
 
       history: [
         {
           status:
+            complaintData.status ||
             "Submitted",
-
-          date:
-            demoNow,
+          date: new Date().toLocaleString(),
         },
       ],
+
+      certificateIssued: false,
+
+      certificateId: null,
+
+      certificateStatus: null,
+
+      certificateIssuedDate: null,
     };
 
-    const updatedComplaints = [
-      demoComplaint,
-      ...savedComplaints,
-    ];
+    setComplaints((prev) => [
+      ...prev,
+      complaint,
+    ]);
 
-    setComplaints(
-      updatedComplaints
-    );
 
-    localStorage.setItem(
-      "complaints",
-      JSON.stringify(
-        updatedComplaints
-      )
-    );
+    /* Citizen notification */
 
-    /* DEMO NOTIFICATION */
+    addNotification({
+      title: "Complaint Submitted Successfully ✅",
+      message: `Your complaint "${
+        complaint.title ||
+        complaint.description ||
+        "Civic problem"
+      }" has been submitted successfully.`,
+      type: "success",
+      audience: "citizen",
+      complaintId: complaint.id,
+      mobile:
+        complaint.userMobile ||
+        complaint.mobile ||
+        "",
+    });
 
-    const savedNotifications =
-      JSON.parse(
-        localStorage.getItem(
-          "portalNotifications"
-        ) || "[]"
-      );
+    return complaint;
+  };
 
-    const notificationExists =
-      savedNotifications.some(
-        (item) =>
-          item.complaintId ===
-          "CMP-SIH-COLLEGE-001"
-      );
-
-    if (!notificationExists) {
-      const demoNotification = {
-        id:
-          `NOT-SIH-${Date.now()}`,
-
-        type:
-          "college-request",
-
-        audience:
-          "college",
-
-        complaintId:
-          "CMP-SIH-COLLEGE-001",
-
-        collegeName:
-          "Karmala Engineering College",
-
-        title:
-          "New Problem Solving Request 🏫",
-
-        message:
-          "A Road & Infrastructure problem has been assigned to Karmala Engineering College.",
-
-        status:
-          "Pending",
-
-        date:
-          demoNow,
-
-        read:
-          false,
-      };
-
-      const updatedNotifications = [
-        demoNotification,
-        ...savedNotifications,
-      ];
-
-      setNotifications(
-        updatedNotifications
-      );
-
-      localStorage.setItem(
-        "portalNotifications",
-        JSON.stringify(
-          updatedNotifications
-        )
-      );
-    }
-  }, []);
 
   /* =======================================================
-     SYNC LOCAL STORAGE
+     UPDATE COMPLAINT
   ======================================================= */
 
-  useEffect(() => {
-    const handleStorage = (
-      event
-    ) => {
-      if (
-        event.key ===
-        "complaints"
-      ) {
-        try {
-          setComplaints(
-            event.newValue
-              ? JSON.parse(
-                  event.newValue
-                )
-              : []
-          );
-        } catch {
-          setComplaints([]);
-        }
-      }
-
-      if (
-        event.key ===
-        "portalNotifications"
-      ) {
-        try {
-          setNotifications(
-            event.newValue
-              ? JSON.parse(
-                  event.newValue
-                )
-              : []
-          );
-        } catch {
-          setNotifications([]);
-        }
-      }
-
-      if (
-        event.key ===
-        "collegeCertificates"
-      ) {
-        try {
-          setCertificates(
-            event.newValue
-              ? JSON.parse(
-                  event.newValue
-                )
-              : []
-          );
-        } catch {
-          setCertificates([]);
-        }
-      }
-    };
-
-    window.addEventListener(
-      "storage",
-      handleStorage
-    );
-
-    return () => {
-      window.removeEventListener(
-        "storage",
-        handleStorage
-      );
-    };
-  }, []);
-
-  /* =========================================================
-     SAVE NOTIFICATION
-  ========================================================= */
-
-  const saveNotification = (
-    notification
+  const updateComplaint = (
+    complaintId,
+    updates
   ) => {
-    const saved =
-      localStorage.getItem(
-        "portalNotifications"
-      );
-
-    let oldNotifications =
-      [];
-
-    try {
-      oldNotifications =
-        saved
-          ? JSON.parse(saved)
-          : [];
-    } catch {
-      oldNotifications = [];
-    }
-
-    const updated = [
-      notification,
-      ...oldNotifications,
-    ];
-
-    setNotifications(
-      updated
-    );
-
-    localStorage.setItem(
-      "portalNotifications",
-      JSON.stringify(
-        updated
+    setComplaints((prev) =>
+      prev.map((complaint) =>
+        complaint.id === complaintId
+          ? {
+              ...complaint,
+              ...updates,
+            }
+          : complaint
       )
     );
   };
 
-  /* =========================================================
-     DELETE SINGLE NOTIFICATION
-     NEW FEATURE
-  ========================================================= */
 
-  const deleteNotification = (
-    id
-  ) => {
-    const updatedNotifications =
-      notifications.filter(
-        (notification) =>
-          notification.id !== id
-      );
-
-    setNotifications(
-      updatedNotifications
-    );
-
-    localStorage.setItem(
-      "portalNotifications",
-      JSON.stringify(
-        updatedNotifications
-      )
-    );
-  };
-
-  /* =========================================================
-     CLEAR ALL NOTIFICATIONS
-     NEW FEATURE
-  ========================================================= */
-
-  const clearAllNotifications = () => {
-    setNotifications([]);
-
-    localStorage.setItem(
-      "portalNotifications",
-      JSON.stringify([])
-    );
-  };
-
-  /* =========================================================
+  /* =======================================================
      GENERATE COLLEGE CERTIFICATE
-  ========================================================= */
+  ======================================================= */
 
   const generateCollegeCertificate = (
     complaint
   ) => {
-    if (!complaint) {
-      return null;
+    if (!complaint) return null;
+
+    const existing = certificates.find(
+      (cert) =>
+        cert.complaintId === complaint.id
+    );
+
+    if (existing) {
+      return existing;
     }
-
-    if (
-      complaint.assignedType !==
-      "College"
-    ) {
-      return null;
-    }
-
-    const existingCertificate =
-      certificates.find(
-        (certificate) =>
-          certificate.complaintId ===
-          complaint.id
-      );
-
-    if (existingCertificate) {
-      return existingCertificate;
-    }
-
-    const now =
-      new Date();
-
-    const certificateId =
-      `CERT-${Date.now()}`;
 
     const certificate = {
-      id:
-        certificateId,
+      certificateId: createId("CERT"),
 
-      certificateId:
-        certificateId,
-
-      complaintId:
-        complaint.id,
-
-      certificateType:
-        "Certificate of Community Contribution",
-
-      title:
-        "Certificate of Community Problem Solving",
+      complaintId: complaint.id,
 
       collegeName:
         complaint.assignedTo ||
-        complaint.collegeRequest
-          ?.collegeName ||
-        "Participating College",
+        complaint.collegeName ||
+        "College Partner",
 
       studentTeam:
         complaint.team ||
-        "Student Problem Solving Team",
+        "Civil Engineering Student Team",
 
       problemTitle:
         complaint.title ||
+        complaint.problemTitle ||
         "Community Problem",
 
       category:
         complaint.category ||
-        "Civic Problem",
+        "General",
 
       problemLocation:
+        getLocationText(
+          complaint.location
+        ) ||
         complaint.exactLocation ||
-        complaint.location
-          ?.exactLocation ||
-        "Location provided",
+        "Location not available",
 
       department:
         complaint.department ||
-        "Concerned Department",
+        "Civil Engineering Department",
 
       service:
         complaint.service ||
-        "Community Problem Solving Service",
+        "Civil / Technical Service",
 
       issuedDate:
-        now.toLocaleDateString(),
+        new Date().toLocaleDateString(),
 
       issuedDateTime:
-        now.toLocaleString(),
+        new Date().toLocaleString(),
 
       status:
         "Certificate Provided",
@@ -804,1367 +352,976 @@ export function ComplaintProvider({
       issuedBy:
         "SamadhanSetu",
 
-      message:
-        "This certificate recognizes the contribution of the college and student team in successfully solving a community problem.",
-
-      verified:
-        true,
+      verified: true,
     };
 
-    const updatedCertificates = [
+    setCertificates((prev) => [
+      ...prev,
       certificate,
-      ...certificates,
-    ];
-
-    setCertificates(
-      updatedCertificates
-    );
-
-    localStorage.setItem(
-      "collegeCertificates",
-      JSON.stringify(
-        updatedCertificates
-      )
-    );
-
-    /* COLLEGE NOTIFICATION */
-
-    saveNotification({
-      id:
-        `NOT-${Date.now()}-CERTIFICATE`,
-
-      type:
-        "certificate",
-
-      audience:
-        "college",
-
-      complaintId:
-        complaint.id,
-
-      collegeName:
-        certificate.collegeName,
-
-      title:
-        "Certificate Provided 🎓",
-
-      message:
-        `Congratulations! 🎉
-
-🏫 College:
-${certificate.collegeName}
-
-👥 Student Team:
-${certificate.studentTeam}
-
-🔧 Problem Solved:
-${certificate.problemTitle}
-
-📍 Location:
-${certificate.problemLocation}
-
-📜 Certificate ID:
-${certificate.certificateId}
-
-✅ Status:
-Certificate Provided
-
-Thank you for helping the community through SamadhanSetu.`,
-
-      status:
-        "Certificate Provided",
-
-      certificateId:
-        certificate.certificateId,
-
-      date:
-        certificate.issuedDateTime,
-
-      read:
-        false,
-    });
-
-    /* ADMIN NOTIFICATION */
-
-    saveNotification({
-      id:
-        `NOT-${Date.now()}-CERT-ADMIN`,
-
-      type:
-        "certificate-issued",
-
-      audience:
-        "admin",
-
-      complaintId:
-        complaint.id,
-
-      title:
-        "College Contribution Certificate Generated 🎓",
-
-      message:
-        `A certificate has been generated for the successful resolution of complaint ${complaint.id}.
-
-🏫 College:
-${certificate.collegeName}
-
-👥 Student Team:
-${certificate.studentTeam}
-
-🔧 Problem:
-${certificate.problemTitle}
-
-📜 Certificate ID:
-${certificate.certificateId}`,
-
-      status:
-        "Certificate Provided",
-
-      certificateId:
-        certificate.certificateId,
-
-      date:
-        certificate.issuedDateTime,
-
-      read:
-        false,
-    });
+    ]);
 
     return certificate;
   };
 
-  /* =========================================================
-     ADD COMPLAINT
-  ========================================================= */
 
-  const addComplaint = (
-    complaint
+  /* =======================================================
+     UPDATE COMPLAINT STATUS
+  ======================================================= */
+
+  const updateComplaintStatus = (
+    complaintId,
+    newStatus
   ) => {
-    const aiAssignment =
-      findBestAssignment(
-        complaint
-      );
+    let resolvedComplaint = null;
+    let generatedCertificate = null;
 
-    const nearbyCollege =
-      findNearbyCollege(
-        complaint
-      );
+    setComplaints((prev) =>
+      prev.map((complaint) => {
+        if (complaint.id !== complaintId) {
+          return complaint;
+        }
 
-    const finalAssignment =
-      nearbyCollege
-        ? {
-            ...aiAssignment,
+        const previousStatus =
+          complaint.status;
 
-            assignedTo:
-              nearbyCollege.name,
+        const history = Array.isArray(
+          complaint.history
+        )
+          ? complaint.history
+          : [];
 
-            assignedType:
-              "College",
+        const updatedHistory = [
+          ...history,
+          {
+            status: newStatus,
+            date: new Date().toLocaleString(),
+          },
+        ];
 
-            assignedCategory:
-              nearbyCollege.category ||
-              complaint.category ||
-              "Civil / Infrastructure",
+        const updatedComplaint = {
+          ...complaint,
 
-            assignmentScore:
-              Math.max(
-                aiAssignment
-                  ?.assignmentScore ||
-                  0,
+          status: newStatus,
 
-                nearbyCollege.keywordMatch
-                  ? 95
-                  : 85
-              ),
+          updatedAt:
+            new Date().toLocaleString(),
 
-            assignmentReason:
-              `Nearby college selected for ${
-                complaint.category ||
-                "Civil problem"
-              } based on location and expertise.`,
+          history:
+            updatedHistory,
+        };
 
-            service:
-              nearbyCollege.service ||
-              "Civil / Technical Problem Solving",
 
-            team:
-              nearbyCollege.team ||
-              "Civil Engineering Student Team",
+        /* =================================================
+           RESOLVED
+        ================================================= */
 
-            distanceKm:
-              nearbyCollege.distance,
+        if (
+          newStatus === "Resolved" &&
+          previousStatus !== "Resolved"
+        ) {
+          resolvedComplaint =
+            updatedComplaint;
 
-            assignedLatitude:
-              nearbyCollege.latitude,
+          /* College certificate */
 
-            assignedLongitude:
-              nearbyCollege.longitude,
+          if (
+            complaint.assignedType ===
+            "College"
+          ) {
+            generatedCertificate =
+              generateCollegeCertificate(
+                updatedComplaint
+              );
 
-            organizationId:
-              nearbyCollege.id,
-          }
-        : aiAssignment;
+            if (
+              generatedCertificate
+            ) {
+              updatedComplaint.certificateIssued =
+                true;
 
-    const isCollegeAssignment =
-      finalAssignment
-        ?.assignedType ===
-      "College";
+              updatedComplaint.certificateId =
+                generatedCertificate.certificateId;
 
-    const now =
-      new Date().toLocaleString();
+              updatedComplaint.certificateStatus =
+                "Certificate Provided";
 
-    const newComplaint = {
-      ...complaint,
+              updatedComplaint.certificateIssuedDate =
+                generatedCertificate.issuedDate;
 
-      isDemo:
-        false,
-
-      id:
-        `CMP-${Date.now()}`,
-
-      status:
-        isCollegeAssignment
-          ? "Awaiting College Response"
-          : "Submitted",
-
-      createdAt:
-        new Date().toLocaleDateString(),
-
-      userMobile:
-        complaint.mobile ||
-        user?.mobile ||
-        "Mobile number not available",
-
-      userEmail:
-        complaint.email ||
-        user?.email ||
-        "",
-
-      assignedTo:
-        finalAssignment
-          ?.assignedTo ||
-        "Concerned Department",
-
-      assignedType:
-        finalAssignment
-          ?.assignedType ||
-        "Government",
-
-      assignedCategory:
-        finalAssignment
-          ?.assignedCategory ||
-        complaint.category ||
-        "General",
-
-      assignmentScore:
-        finalAssignment
-          ?.assignmentScore ||
-        0,
-
-      assignmentReason:
-        finalAssignment
-          ?.assignmentReason ||
-        "",
-
-      service:
-        finalAssignment
-          ?.service ||
-        "General Service",
-
-      team:
-        finalAssignment
-          ?.team ||
-        "Concerned Team",
-
-      distanceKm:
-        finalAssignment
-          ?.distanceKm ??
-        null,
-
-      assignedLatitude:
-        finalAssignment
-          ?.assignedLatitude ??
-        finalAssignment?.latitude ??
-        null,
-
-      assignedLongitude:
-        finalAssignment
-          ?.assignedLongitude ??
-        finalAssignment?.longitude ??
-        null,
-
-      organizationId:
-        finalAssignment
-          ?.organizationId ??
-        null,
-
-      collegeRequest:
-        isCollegeAssignment
-          ? {
-              status:
-                "Pending",
-
-              collegeName:
-                finalAssignment.assignedTo,
-
-              collegeType:
-                "College",
-
-              sentAt:
-                now,
-
-              respondedAt:
-                null,
-
-              responseBy:
-                null,
-
-              message:
-                `A citizen has reported a ${
-                  complaint.category ||
-                  "Civil"
-                } related problem near the college. Can your college/student team solve this problem?`,
+              updatedComplaint.history = [
+                ...updatedComplaint.history,
+                {
+                  status:
+                    "Certificate Provided",
+                  date:
+                    new Date().toLocaleString(),
+                },
+              ];
             }
-          : null,
+          }
+        }
 
-      collegeAccepted:
-        false,
-
-      aiAnalysis: {
-        analyzed:
-          true,
-
-        analyzedAt:
-          now,
-
-        category:
-          complaint.category ||
-          "General",
-
-        recommendation:
-          finalAssignment
-            ?.assignedTo ||
-          "Concerned Department",
-      },
-
-      rewardPointsEarned:
-        10,
-
-      certificateIssued:
-        false,
-
-      certificateId:
-        null,
-
-      history: [
-        {
-          status:
-            "Submitted",
-
-          date:
-            now,
-        },
-      ],
-    };
-
-    const updatedComplaints = [
-      ...complaints,
-      newComplaint,
-    ];
-
-    setComplaints(
-      updatedComplaints
+        return updatedComplaint;
+      })
     );
 
-    localStorage.setItem(
-      "complaints",
-      JSON.stringify(
-        updatedComplaints
-      )
-    );
 
-    /* +10 REWARD */
+    /* =====================================================
+       CITIZEN RESOLVED NOTIFICATION
+    ===================================================== */
 
-    addRewardPoints(
-      10,
-      "Complaint submitted"
-    );
+    if (newStatus === "Resolved") {
+      setTimeout(() => {
+        const currentComplaint =
+          complaints.find(
+            (c) => c.id === complaintId
+          );
 
-    /* CITIZEN NOTIFICATION */
+        if (!currentComplaint) {
+          return;
+        }
 
-    saveNotification({
-      id:
-        `NOT-${Date.now()}-SUBMIT`,
+        addNotification({
+          title:
+            "Problem Solved 🎉",
 
-      type:
-        "submitted",
+          message:
+            `Your complaint ${complaintId} has been resolved successfully. ✅ Problem solved successfully`,
 
-      complaintId:
-        newComplaint.id,
+          type: "success",
 
-      userMobile:
-        newComplaint.userMobile,
+          audience: "citizen",
 
-      title:
-        isCollegeAssignment
-          ? "College Request Sent 🏫"
-          : "Complaint Submitted Successfully ✅",
+          complaintId,
 
-      message:
-        isCollegeAssignment
-          ? `Your complaint ${
-              newComplaint.id
-            } has been sent to ${
-              newComplaint.assignedTo
-            } for acceptance.
+          mobile:
+            currentComplaint.userMobile ||
+            currentComplaint.mobile ||
+            "",
+        });
 
-🏫 College:
-${newComplaint.assignedTo}
 
-🔧 Problem:
-${newComplaint.category}
+        /* =================================================
+           COLLEGE NOTIFICATIONS
+        ================================================= */
 
-📍 Location:
-${
-  newComplaint.exactLocation ||
-  newComplaint.location
-    ?.exactLocation ||
-  "Location provided"
-}
+        if (
+          currentComplaint.assignedType ===
+          "College"
+        ) {
+          addNotification({
+            title:
+              "College Contribution Certificate Generated 🎓",
 
-⏳ Waiting for college response.
-⭐ Reward: +10 points`
-          : `Your complaint "${
-              newComplaint.title ||
-              "Civic Problem"
-            }" has been submitted successfully.
+            message:
+              `A certificate has been generated for successful resolution of complaint ${complaintId}. 🏫 College: ${
+                currentComplaint.assignedTo ||
+                "College"
+              } 👥 Student Team: ${
+                currentComplaint.team ||
+                "Civil Engineering Student Team"
+              } 📜 Certificate ID: ${
+                generatedCertificate?.certificateId ||
+                currentComplaint.certificateId ||
+                "Generated"
+              }`,
 
-🤖 AI Category:
-${newComplaint.category}
+            type: "college",
 
-🏢 Recommended Organization:
-${newComplaint.assignedTo}
+            audience: "college",
 
-🔧 Service:
-${newComplaint.service}
+            complaintId,
+          });
 
-⭐ Reward: +10 points`,
 
-      status:
-        newComplaint.status,
+          addNotification({
+            title:
+              "Certificate Provided 🎓",
 
-      rewardPoints:
-        10,
+            message:
+              `Congratulations! 🎉 The problem submitted by you was successfully solved by ${
+                currentComplaint.assignedTo ||
+                "College Partner"
+              }. 📜 Certificate has been provided by SamadhanSetu.`,
 
-      assignedTo:
-        newComplaint.assignedTo,
+            type: "success",
 
-      date:
-        now,
+            audience: "citizen",
 
-      read:
-        false,
-    });
+            complaintId,
+          });
+        }
+      }, 0);
 
-    /* COLLEGE NOTIFICATION */
 
-    if (isCollegeAssignment) {
-      saveNotification({
-        id:
-          `NOT-${Date.now()}-COLLEGE`,
+      /* Citizen reward */
 
-        type:
-          "college-request",
-
-        audience:
-          "college",
-
-        complaintId:
-          newComplaint.id,
-
-        collegeName:
-          newComplaint.assignedTo,
-
-        title:
-          "New Problem Solving Request 🏫",
-
-        message:
-          `A new ${
-            newComplaint.category ||
-            "Civil"
-          } problem has been assigned to your college.
-
-Citizen Problem:
-${
-  newComplaint.title ||
-  "Civic Problem"
-}
-
-Description:
-${
-  newComplaint.description ||
-  "No description provided"
-}
-
-Location:
-${
-  newComplaint.exactLocation ||
-  newComplaint.location
-    ?.exactLocation ||
-  "Location provided"
-}
-
-📍 Distance:
-${
-  newComplaint.distanceKm !=
-  null
-    ? `${Number(
-        newComplaint.distanceKm
-      ).toFixed(2)} km`
-    : "Nearby"
-}
-
-Can your college/student team solve this problem?
-
-Open College Requests to Accept or Reject.`,
-
-        status:
-          "Pending",
-
-        date:
-          now,
-
-        read:
-          false,
-      });
+      if (
+        user &&
+        typeof addRewardPoints ===
+          "function"
+      ) {
+        addRewardPoints(
+          50,
+          `Complaint ${complaintId} resolved`
+        );
+      }
     }
 
-    return newComplaint;
+
+    /* =====================================================
+       IN PROGRESS NOTIFICATION
+    ===================================================== */
+
+    if (newStatus === "In Progress") {
+      setTimeout(() => {
+        const currentComplaint =
+          complaints.find(
+            (c) => c.id === complaintId
+          );
+
+        if (!currentComplaint) return;
+
+        addNotification({
+          title:
+            "Problem Work Started 🔧",
+
+          message:
+            `Your complaint ${complaintId} is now in progress.`,
+
+          type: "info",
+
+          audience: "citizen",
+
+          complaintId,
+
+          mobile:
+            currentComplaint.userMobile ||
+            currentComplaint.mobile ||
+            "",
+        });
+      }, 0);
+    }
+
+
+    return true;
   };
 
-  /* =========================================================
-     ACCEPT COLLEGE REQUEST
-  ========================================================= */
 
-  const acceptCollegeRequest = (
+  /* =======================================================
+     ASSIGN PROBLEM
+  ======================================================= */
+
+  const assignProblem = (
     complaintId,
-    collegeName,
-    responseBy =
-      "College Representative"
+    assignmentData
   ) => {
-    const existingComplaint =
+    const complaint =
       complaints.find(
-        (complaint) =>
-          complaint.id ===
-          complaintId
+        (c) => c.id === complaintId
       );
 
-    if (!existingComplaint) {
+    if (!complaint) {
       return {
-        success:
-          false,
-
-        message:
-          "Complaint not found.",
+        success: false,
+        message: "Complaint not found",
       };
     }
 
-    const now =
-      new Date().toLocaleString();
+    const {
+      assignedTo,
+      assignedType,
+      service = "",
+      team = "",
+      assignmentReason = "",
+      assignmentScore = null,
+      distanceKm = null,
+    } = assignmentData;
 
-    const updatedComplaint = {
-      ...existingComplaint,
+
+    if (!assignedTo || !assignedType) {
+      return {
+        success: false,
+        message:
+          "Organization and type are required",
+      };
+    }
+
+
+    const requestStatus = "Pending";
+
+    const updates = {
+      assignedTo,
+
+      assignedType,
+
+      assignedAt:
+        new Date().toLocaleString(),
+
+      service,
+
+      team,
+
+      assignmentReason,
+
+      assignmentScore,
+
+      distanceKm,
 
       status:
-        "In Progress",
-
-      collegeAccepted:
-        true,
-
-      assignedTo:
-        collegeName ||
-        existingComplaint.assignedTo,
-
-      collegeRequest: {
-        ...(existingComplaint.collegeRequest ||
-          {}),
-
-        status:
-          "Accepted",
-
-        respondedAt:
-          now,
-
-        responseBy,
-
-        collegeName:
-          collegeName ||
-          existingComplaint.assignedTo,
-      },
-
-      history: [
-        ...(existingComplaint.history ||
-          []),
-
-        {
-          status:
-            "College Accepted",
-
-          date:
-            now,
-        },
-
-        {
-          status:
-            "In Progress",
-
-          date:
-            now,
-        },
-      ],
+        assignedType === "College"
+          ? "Awaiting College Response"
+          : "Awaiting Industry Response",
     };
 
-    const updatedComplaints =
-      complaints.map(
-        (complaint) =>
-          complaint.id ===
-          complaintId
-            ? updatedComplaint
-            : complaint
-      );
 
-    setComplaints(
-      updatedComplaints
-    );
+    if (assignedType === "College") {
+      updates.collegeAccepted = false;
 
-    localStorage.setItem(
-      "complaints",
-      JSON.stringify(
-        updatedComplaints
-      )
-    );
+      updates.rejectedByCollege =
+        false;
 
-    /* CITIZEN */
+      updates.collegeStatus =
+        "Pending";
 
-    saveNotification({
-      id:
-        `NOT-${Date.now()}-ACCEPT-CITIZEN`,
+      updates.collegeRequest = {
+        status: requestStatus,
 
-      type:
-        "college-accepted",
+        collegeName: assignedTo,
 
-      audience:
-        "citizen",
+        message:
+          `A new problem has been assigned to ${assignedTo}.`,
 
+        requestedAt:
+          new Date().toLocaleString(),
+
+        respondedAt: null,
+
+        responseBy: null,
+
+        rejectionReason: null,
+      };
+    }
+
+
+    if (assignedType === "Industry") {
+      updates.industryAccepted = false;
+
+      updates.rejectedByIndustry =
+        false;
+
+      updates.industryStatus =
+        "Pending";
+
+      updates.industryRequest = {
+        status: requestStatus,
+
+        industryName: assignedTo,
+
+        message:
+          `A new problem has been assigned to ${assignedTo}.`,
+
+        requestedAt:
+          new Date().toLocaleString(),
+
+        respondedAt: null,
+
+        responseBy: null,
+
+        rejectionReason: null,
+      };
+    }
+
+
+    updateComplaint(
       complaintId,
+      updates
+    );
 
+
+    /* =================================================
+       PARTNER NOTIFICATION
+    ================================================= */
+
+    addNotification({
       title:
-        "College Accepted Your Problem ✅",
+        assignedType === "College"
+          ? "New Problem Solving Request 🏫"
+          : "New Problem Solving Request 🏭",
 
       message:
-        `${
-          collegeName ||
-          existingComplaint.assignedTo
-        } has accepted your complaint.
-
-🏫 College:
-${
-  collegeName ||
-  existingComplaint.assignedTo
-}
-
-🔧 Problem:
-${
-  existingComplaint.title ||
-  existingComplaint.category
-}
-
-🚀 Status:
-In Progress
-
-The college/student team will start working on the solution.`,
-
-      status:
-        "In Progress",
-
-      assignedTo:
-        collegeName ||
-        existingComplaint.assignedTo,
-
-      date:
-        now,
-
-      read:
-        false,
-    });
-
-    /* ADMIN */
-
-    saveNotification({
-      id:
-        `NOT-${Date.now()}-ACCEPT-ADMIN`,
+        `A new ${complaint.category || "civic"} problem has been assigned to ${assignedTo}.`,
 
       type:
-        "admin-college-accepted",
+        assignedType === "College"
+          ? "college"
+          : "admin",
 
       audience:
-        "admin",
+        assignedType === "College"
+          ? "college"
+          : "industry",
+
+      complaintId,
+    });
+
+
+    /* =================================================
+       CITIZEN NOTIFICATION
+    ================================================= */
+
+    addNotification({
+      title:
+        "Problem Assigned 📤",
+
+      message:
+        `Your complaint ${complaintId} has been assigned to ${assignedTo} for solving.`,
+
+      type: "info",
+
+      audience: "citizen",
 
       complaintId,
 
+      mobile:
+        complaint.userMobile ||
+        complaint.mobile ||
+        "",
+    });
+
+
+    return {
+      success: true,
+      message:
+        `Problem assigned to ${assignedTo}`,
+    };
+  };
+
+
+  /* =======================================================
+     ASSIGN TO COLLEGE
+  ======================================================= */
+
+  const assignToCollege = (
+    complaintId,
+    collegeName,
+    extraData = {}
+  ) => {
+    return assignProblem(
+      complaintId,
+      {
+        assignedTo: collegeName,
+
+        assignedType: "College",
+
+        ...extraData,
+      }
+    );
+  };
+
+
+  /* =======================================================
+     ASSIGN TO INDUSTRY
+  ======================================================= */
+
+  const assignToIndustry = (
+    complaintId,
+    industryName,
+    extraData = {}
+  ) => {
+    return assignProblem(
+      complaintId,
+      {
+        assignedTo: industryName,
+
+        assignedType: "Industry",
+
+        ...extraData,
+      }
+    );
+  };
+
+
+  /* =======================================================
+     COLLEGE ACCEPT
+  ======================================================= */
+
+  const acceptCollegeRequest = (
+    complaintId
+  ) => {
+    const complaint =
+      complaints.find(
+        (c) => c.id === complaintId
+      );
+
+    if (!complaint) {
+      return false;
+    }
+
+
+    const updatedRequest = {
+      ...(complaint.collegeRequest || {}),
+
+      status: "Accepted",
+
+      respondedAt:
+        new Date().toLocaleString(),
+
+      responseBy:
+        user?.name ||
+        complaint.assignedTo ||
+        "College Partner",
+    };
+
+
+    updateComplaint(
+      complaintId,
+      {
+        collegeAccepted: true,
+
+        rejectedByCollege: false,
+
+        collegeStatus: "Accepted",
+
+        collegeRequest:
+          updatedRequest,
+
+        status: "In Progress",
+
+        acceptedBy:
+          user?.name ||
+          complaint.assignedTo ||
+          "College Partner",
+
+        acceptedAt:
+          new Date().toLocaleString(),
+      }
+    );
+
+
+    /* Admin notification */
+
+    addNotification({
       title:
         "College Accepted a Problem ✅",
 
       message:
-        `${
-          collegeName ||
-          existingComplaint.assignedTo
-        } has accepted complaint ${complaintId}.
+        `${complaint.assignedTo || "College"} has accepted complaint ${complaint.id}. The problem is now in progress.`,
 
-🏫 Assigned College:
-${
-  collegeName ||
-  existingComplaint.assignedTo
-}
+      type: "college",
 
-🔧 Category:
-${existingComplaint.category}
+      audience: "admin",
 
-📍 Location:
-${
-  existingComplaint.exactLocation ||
-  existingComplaint.location
-    ?.exactLocation ||
-  "Location provided"
-}
-
-The college will work on solving the problem.`,
-
-      status:
-        "College Accepted",
-
-      assignedTo:
-        collegeName ||
-        existingComplaint.assignedTo,
-
-      date:
-        now,
-
-      read:
-        false,
+      complaintId:
+        complaint.id,
     });
 
-    return {
-      success:
-        true,
 
-      complaint:
-        updatedComplaint,
-    };
+    /* Citizen notification */
+
+    addNotification({
+      title:
+        "College Accepted Your Problem ✅",
+
+      message:
+        `${complaint.assignedTo || "College"} has accepted your complaint. Status: In Progress.`,
+
+      type: "success",
+
+      audience: "citizen",
+
+      complaintId:
+        complaint.id,
+
+      mobile:
+        complaint.userMobile ||
+        complaint.mobile ||
+        "",
+    });
+
+
+    return true;
   };
 
-  /* =========================================================
-     REJECT COLLEGE REQUEST
-  ========================================================= */
+
+  /* =======================================================
+     COLLEGE REJECT
+  ======================================================= */
 
   const rejectCollegeRequest = (
     complaintId,
-    collegeName,
-    responseBy =
-      "College Representative",
-    reason =
-      "College is unable to solve this problem."
+    reason = "College unable to handle the problem"
   ) => {
-    const existingComplaint =
+    const complaint =
       complaints.find(
-        (complaint) =>
-          complaint.id ===
-          complaintId
+        (c) => c.id === complaintId
       );
 
-    if (!existingComplaint) {
-      return {
-        success:
-          false,
-
-        message:
-          "Complaint not found.",
-      };
+    if (!complaint) {
+      return false;
     }
 
-    const now =
-      new Date().toLocaleString();
 
-    const updatedComplaint = {
-      ...existingComplaint,
+    const updatedRequest = {
+      ...(complaint.collegeRequest || {}),
 
-      status:
-        "Submitted",
+      status: "Rejected",
 
-      collegeAccepted:
-        false,
+      respondedAt:
+        new Date().toLocaleString(),
 
-      collegeRequest: {
-        ...(existingComplaint.collegeRequest ||
-          {}),
+      responseBy:
+        user?.name ||
+        complaint.assignedTo ||
+        "College Partner",
 
-        status:
-          "Rejected",
-
-        respondedAt:
-          now,
-
-        responseBy,
-
-        collegeName:
-          collegeName ||
-          existingComplaint.assignedTo,
-
-        rejectionReason:
-          reason,
-      },
-
-      history: [
-        ...(existingComplaint.history ||
-          []),
-
-        {
-          status:
-            "College Rejected",
-
-          date:
-            now,
-        },
-      ],
+      rejectionReason: reason,
     };
 
-    const updatedComplaints =
-      complaints.map(
-        (complaint) =>
-          complaint.id ===
-          complaintId
-            ? updatedComplaint
-            : complaint
-      );
 
-    setComplaints(
-      updatedComplaints
-    );
-
-    localStorage.setItem(
-      "complaints",
-      JSON.stringify(
-        updatedComplaints
-      )
-    );
-
-    /* ADMIN */
-
-    saveNotification({
-      id:
-        `NOT-${Date.now()}-REJECT-ADMIN`,
-
-      type:
-        "college-rejected",
-
-      audience:
-        "admin",
-
+    updateComplaint(
       complaintId,
+      {
+        collegeAccepted: false,
 
+        rejectedByCollege: true,
+
+        collegeStatus: "Rejected",
+
+        collegeRequest:
+          updatedRequest,
+
+        status: "Rejected",
+      }
+    );
+
+
+    /* Admin */
+
+    addNotification({
       title:
-        "College Rejected Problem ⚠️",
+        "College Rejected Problem ❌",
 
       message:
-        `${
-          collegeName ||
-          existingComplaint.assignedTo
-        } rejected complaint ${complaintId}.
+        `${complaint.assignedTo || "College"} rejected complaint ${complaint.id}. Reason: ${reason}`,
 
-Reason:
-${reason}
+      type: "warning",
 
-Admin action is required for reassignment.`,
+      audience: "admin",
 
-      status:
-        "College Rejected",
-
-      assignedTo:
-        collegeName ||
-        existingComplaint.assignedTo,
-
-      date:
-        now,
-
-      read:
-        false,
+      complaintId:
+        complaint.id,
     });
 
-    /* CITIZEN */
 
-    saveNotification({
-      id:
-        `NOT-${Date.now()}-REJECT-CITIZEN`,
+    /* Citizen */
 
-      type:
-        "college-rejected",
-
-      audience:
-        "citizen",
-
-      complaintId,
-
+    addNotification({
       title:
         "College Could Not Accept Problem ⚠️",
 
       message:
-        `${
-          collegeName ||
-          existingComplaint.assignedTo
-        } could not accept your complaint.
+        `${complaint.assignedTo || "College"} could not accept your complaint. Admin will review the assignment.`,
 
-Reason:
-${reason}
+      type: "warning",
 
-The problem will require reassignment.`,
-
-      status:
-        "College Rejected",
-
-      assignedTo:
-        collegeName ||
-        existingComplaint.assignedTo,
-
-      date:
-        now,
-
-      read:
-        false,
-    });
-
-    return {
-      success:
-        true,
-
-      complaint:
-        updatedComplaint,
-    };
-  };
-
-  /* =========================================================
-     UPDATE GENERAL STATUS
-     + REWARD
-     + CERTIFICATE
-  ========================================================= */
-
-  const updateComplaintStatus = (
-    id,
-    newStatus
-  ) => {
-    const existingComplaint =
-      complaints.find(
-        (complaint) =>
-          complaint.id === id
-      );
-
-    if (!existingComplaint) {
-      return;
-    }
-
-    const wasAlreadyResolved =
-      existingComplaint.status ===
-      "Resolved";
-
-    const now =
-      new Date().toLocaleString();
-
-    const updatedComplaint = {
-      ...existingComplaint,
-
-      status:
-        newStatus,
-
-      history: [
-        ...(existingComplaint.history ||
-          []),
-
-        {
-          status:
-            newStatus,
-
-          date:
-            now,
-        },
-      ],
-    };
-
-    let resolutionReward =
-      0;
-
-    /* RESOLUTION REWARD */
-
-    if (
-      newStatus ===
-        "Resolved" &&
-      !wasAlreadyResolved
-    ) {
-      resolutionReward =
-        50;
-
-      updatedComplaint.rewardPointsEarned =
-        (
-          existingComplaint.rewardPointsEarned ||
-          0
-        ) + 50;
-
-      addRewardPoints(
-        50,
-        `Complaint ${id} resolved`
-      );
-    }
-
-    /* COLLEGE CERTIFICATE */
-
-    let generatedCertificate =
-      null;
-
-    if (
-      newStatus ===
-        "Resolved" &&
-      !wasAlreadyResolved &&
-      existingComplaint.assignedType ===
-        "College"
-    ) {
-      generatedCertificate =
-        generateCollegeCertificate(
-          updatedComplaint
-        );
-
-      if (generatedCertificate) {
-        updatedComplaint.certificateIssued =
-          true;
-
-        updatedComplaint.certificateId =
-          generatedCertificate.certificateId;
-
-        updatedComplaint.certificateStatus =
-          "Certificate Provided";
-
-        updatedComplaint.certificateIssuedDate =
-          generatedCertificate.issuedDate;
-
-        updatedComplaint.history = [
-          ...(updatedComplaint.history ||
-            []),
-
-          {
-            status:
-              "Certificate Provided",
-
-            date:
-              now,
-
-            certificateId:
-              generatedCertificate.certificateId,
-          },
-        ];
-      }
-    }
-
-    const updatedComplaints =
-      complaints.map(
-        (complaint) =>
-          complaint.id === id
-            ? updatedComplaint
-            : complaint
-      );
-
-    setComplaints(
-      updatedComplaints
-    );
-
-    localStorage.setItem(
-      "complaints",
-      JSON.stringify(
-        updatedComplaints
-      )
-    );
-
-    const mobile =
-      existingComplaint.userMobile ||
-      existingComplaint.mobile ||
-      user?.mobile ||
-      "Mobile number not available";
-
-    /* STATUS NOTIFICATION */
-
-    let notificationTitle =
-      "Complaint Status Updated 📢";
-
-    let notificationMessage =
-      `Your complaint ${id} status is now ${newStatus}.`;
-
-    if (
-      newStatus ===
-      "Resolved"
-    ) {
-      notificationTitle =
-        "Problem Solved 🎉";
-
-      notificationMessage =
-        `Your complaint ${id} has been resolved successfully.
-
-✅ Problem solved successfully
-⭐ Reward earned: +50 points
-🏫 Solved by:
-${
-  existingComplaint.assignedTo ||
-  "Concerned Organization"
-}
-📱 Registered number:
-${mobile}`;
-
-      if (
-        generatedCertificate
-      ) {
-        notificationMessage += `
-
-🎓 College Contribution Certificate:
-Certificate Provided
-
-🏫 College:
-${generatedCertificate.collegeName}
-
-👥 Student Team:
-${generatedCertificate.studentTeam}
-
-📜 Certificate ID:
-${generatedCertificate.certificateId}`;
-      }
-    } else if (
-      newStatus ===
-      "In Progress"
-    ) {
-      notificationTitle =
-        "Complaint In Progress 🔄";
-
-      notificationMessage =
-        `Your complaint ${id} is now being processed.
-
-🏢 Organization:
-${
-  existingComplaint.assignedTo ||
-  "Concerned Department"
-}
-
-${
-  existingComplaint.collegeAccepted
-    ? "🏫 College has accepted this problem."
-    : ""
-}`;
-    } else if (
-      newStatus ===
-      "Under Review"
-    ) {
-      notificationTitle =
-        "Complaint Under Review 🔍";
-
-      notificationMessage =
-        `Your complaint ${id} is currently under review by:
-${
-  existingComplaint.assignedTo ||
-  "Concerned Organization"
-}`;
-    }
-
-    saveNotification({
-      id:
-        `NOT-${Date.now()}-${Math.random()}`,
-
-      type:
-        "status",
+      audience: "citizen",
 
       complaintId:
-        id,
+        complaint.id,
 
-      userMobile:
-        mobile,
-
-      title:
-        notificationTitle,
-
-      message:
-        notificationMessage,
-
-      status:
-        newStatus,
-
-      rewardPoints:
-        resolutionReward,
-
-      assignedTo:
-        existingComplaint.assignedTo ||
+      mobile:
+        complaint.userMobile ||
+        complaint.mobile ||
         "",
-
-      date:
-        now,
-
-      read:
-        false,
     });
 
-    /* CITIZEN CERTIFICATE NOTIFICATION */
 
-    if (
-      generatedCertificate
-    ) {
-      saveNotification({
-        id:
-          `NOT-${Date.now()}-CERT-CITIZEN`,
-
-        type:
-          "certificate",
-
-        audience:
-          "citizen",
-
-        complaintId:
-          id,
-
-        title:
-          "College Team Earned a Certificate 🎓",
-
-        message:
-          `The problem submitted by you was successfully solved by:
-
-🏫 College:
-${generatedCertificate.collegeName}
-
-👥 Student Team:
-${generatedCertificate.studentTeam}
-
-🔧 Problem:
-${generatedCertificate.problemTitle}
-
-📜 Certificate ID:
-${generatedCertificate.certificateId}
-
-✅ Certificate Provided by SamadhanSetu.`,
-
-        status:
-          "Certificate Provided",
-
-        assignedTo:
-          generatedCertificate.collegeName,
-
-        certificateId:
-          generatedCertificate.certificateId,
-
-        date:
-          now,
-
-        read:
-          false,
-      });
-    }
+    return true;
   };
 
-  /* =========================================================
+
+  /* =======================================================
+     INDUSTRY ACCEPT
+  ======================================================= */
+
+  const acceptIndustryRequest = (
+    complaintId
+  ) => {
+    const complaint =
+      complaints.find(
+        (c) => c.id === complaintId
+      );
+
+    if (!complaint) {
+      return false;
+    }
+
+
+    const updatedRequest = {
+      ...(complaint.industryRequest || {}),
+
+      status: "Accepted",
+
+      respondedAt:
+        new Date().toLocaleString(),
+
+      responseBy:
+        user?.name ||
+        complaint.assignedTo ||
+        "Industry Partner",
+    };
+
+
+    updateComplaint(
+      complaintId,
+      {
+        industryAccepted: true,
+
+        rejectedByIndustry: false,
+
+        industryStatus: "Accepted",
+
+        industryRequest:
+          updatedRequest,
+
+        status: "In Progress",
+
+        acceptedBy:
+          user?.name ||
+          complaint.assignedTo ||
+          "Industry Partner",
+
+        acceptedAt:
+          new Date().toLocaleString(),
+      }
+    );
+
+
+    /* Admin */
+
+    addNotification({
+      title:
+        "Industry Accepted a Problem ✅",
+
+      message:
+        `${complaint.assignedTo || "Industry"} has accepted complaint ${complaint.id}. The problem is now in progress.`,
+
+      type: "success",
+
+      audience: "admin",
+
+      complaintId:
+        complaint.id,
+    });
+
+
+    /* Citizen */
+
+    addNotification({
+      title:
+        "Industry Accepted Your Problem ✅",
+
+      message:
+        `${complaint.assignedTo || "Industry"} has accepted your complaint. Status: In Progress.`,
+
+      type: "success",
+
+      audience: "citizen",
+
+      complaintId:
+        complaint.id,
+
+      mobile:
+        complaint.userMobile ||
+        complaint.mobile ||
+        "",
+    });
+
+
+    return true;
+  };
+
+
+  /* =======================================================
+     INDUSTRY REJECT
+  ======================================================= */
+
+  const rejectIndustryRequest = (
+    complaintId,
+    reason = "Industry unable to handle the problem"
+  ) => {
+    const complaint =
+      complaints.find(
+        (c) => c.id === complaintId
+      );
+
+    if (!complaint) {
+      return false;
+    }
+
+
+    const updatedRequest = {
+      ...(complaint.industryRequest || {}),
+
+      status: "Rejected",
+
+      respondedAt:
+        new Date().toLocaleString(),
+
+      responseBy:
+        user?.name ||
+        complaint.assignedTo ||
+        "Industry Partner",
+
+      rejectionReason: reason,
+    };
+
+
+    updateComplaint(
+      complaintId,
+      {
+        industryAccepted: false,
+
+        rejectedByIndustry: true,
+
+        industryStatus: "Rejected",
+
+        industryRequest:
+          updatedRequest,
+
+        status: "Rejected",
+      }
+    );
+
+
+    /* Admin */
+
+    addNotification({
+      title:
+        "Industry Rejected Problem ❌",
+
+      message:
+        `${complaint.assignedTo || "Industry"} rejected complaint ${complaint.id}. Reason: ${reason}`,
+
+      type: "warning",
+
+      audience: "admin",
+
+      complaintId:
+        complaint.id,
+    });
+
+
+    /* Citizen */
+
+    addNotification({
+      title:
+        "Industry Could Not Accept Problem ⚠️",
+
+      message:
+        `${complaint.assignedTo || "Industry"} could not accept your complaint. Admin will review the assignment.`,
+
+      type: "warning",
+
+      audience: "citizen",
+
+      complaintId:
+        complaint.id,
+
+      mobile:
+        complaint.userMobile ||
+        complaint.mobile ||
+        "",
+    });
+
+
+    return true;
+  };
+
+
+  /* =======================================================
      DELETE COMPLAINT
-  ========================================================= */
+  ======================================================= */
 
   const deleteComplaint = (
-    id
+    complaintId
   ) => {
     const updated =
       complaints.filter(
         (complaint) =>
-          complaint.id !== id
+          complaint.id !== complaintId
       );
 
-    setComplaints(
-      updated
-    );
+    setComplaints(updated);
 
-    localStorage.setItem(
-      "complaints",
-      JSON.stringify(
-        updated
-      )
-    );
-
-    const realUserComplaints =
-      updated.filter(
-        (complaint) =>
-          !complaint.isDemo
-      );
-
-    if (
-      realUserComplaints.length ===
-      0
-    ) {
-      resetRewards();
-
-      window.dispatchEvent(
-        new Event(
-          "rewardReset"
-        )
-      );
-    }
+    return true;
   };
 
-  /* =========================================================
+
+  /* =======================================================
      MARK NOTIFICATION READ
-  ========================================================= */
+  ======================================================= */
 
   const markNotificationRead = (
-    id
+    notificationId
   ) => {
-    const updatedNotifications =
-      notifications.map(
-        (notification) =>
-          notification.id === id
-            ? {
-                ...notification,
-                read: true,
-              }
-            : notification
-      );
-
-    setNotifications(
-      updatedNotifications
-    );
-
-    localStorage.setItem(
-      "portalNotifications",
-      JSON.stringify(
-        updatedNotifications
+    setNotifications((prev) =>
+      prev.map((notification) =>
+        notification.id === notificationId
+          ? {
+              ...notification,
+              read: true,
+            }
+          : notification
       )
     );
   };
 
-  /* =========================================================
-     GET CERTIFICATE BY COMPLAINT
-  ========================================================= */
+
+  /* =======================================================
+     DELETE NOTIFICATION
+  ======================================================= */
+
+  const deleteNotification = (
+    notificationId
+  ) => {
+    setNotifications((prev) =>
+      prev.filter(
+        (notification) =>
+          notification.id !==
+          notificationId
+      )
+    );
+  };
+
+
+  /* =======================================================
+     CLEAR NOTIFICATIONS
+  ======================================================= */
+
+  const clearAllNotifications = () => {
+    setNotifications([]);
+  };
+
+
+  /* =======================================================
+     CERTIFICATE GETTERS
+  ======================================================= */
 
   const getCertificateByComplaint = (
     complaintId
   ) => {
-    return (
-      certificates.find(
-        (certificate) =>
-          certificate.complaintId ===
-          complaintId
-      ) || null
+    return certificates.find(
+      (certificate) =>
+        certificate.complaintId ===
+        complaintId
     );
   };
 
-  /* =========================================================
-     GET COLLEGE CERTIFICATES
-  ========================================================= */
 
   const getCollegeCertificates = (
-    collegeName
+    collegeName = null
   ) => {
     if (!collegeName) {
       return certificates;
@@ -2177,9 +1334,10 @@ ${generatedCertificate.certificateId}
     );
   };
 
-  /* =========================================================
+
+  /* =======================================================
      PROVIDER
-  ========================================================= */
+  ======================================================= */
 
   return (
     <ComplaintContext.Provider
@@ -2192,22 +1350,32 @@ ${generatedCertificate.certificateId}
 
         addComplaint,
 
+        updateComplaint,
+
         updateComplaintStatus,
+
+        assignProblem,
+
+        assignToCollege,
+
+        assignToIndustry,
 
         acceptCollegeRequest,
 
         rejectCollegeRequest,
 
+        acceptIndustryRequest,
+
+        rejectIndustryRequest,
+
         deleteComplaint,
 
         markNotificationRead,
 
-        // NEW NOTIFICATION FEATURES
         deleteNotification,
 
         clearAllNotifications,
 
-        // CERTIFICATE FEATURES
         generateCollegeCertificate,
 
         getCertificateByComplaint,
@@ -2220,15 +1388,14 @@ ${generatedCertificate.certificateId}
   );
 }
 
+
 /* =========================================================
    HOOK
 ========================================================= */
 
 export function useComplaints() {
   const context =
-    useContext(
-      ComplaintContext
-    );
+    useContext(ComplaintContext);
 
   if (!context) {
     throw new Error(
@@ -2239,3 +1406,4 @@ export function useComplaints() {
   return context;
 }
 
+export default ComplaintContext;

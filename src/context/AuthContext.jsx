@@ -5,170 +5,286 @@ import React, {
   useState,
 } from "react";
 
+import {
+  loginUser,
+  registerUser,
+  getCurrentUser,
+  logoutUser,
+  normalizeRole,
+} from "../services/authService";
+
 const AuthContext = createContext(null);
+
+/* =========================================================
+   STORAGE HELPERS
+========================================================= */
+
+const getStoredUser = () => {
+  try {
+    const savedUser =
+      localStorage.getItem("complaintUser") ||
+      localStorage.getItem("authUser");
+
+    if (!savedUser) return null;
+
+    return JSON.parse(savedUser);
+  } catch (error) {
+    console.error("Could not read saved user:", error);
+    return null;
+  }
+};
+
+const saveLoggedInUser = (userData) => {
+  try {
+    localStorage.setItem(
+      "complaintUser",
+      JSON.stringify(userData)
+    );
+
+    localStorage.setItem(
+      "authUser",
+      JSON.stringify(userData)
+    );
+  } catch (error) {
+    console.error("Could not save logged in user:", error);
+  }
+};
+
+const removeLoggedInUser = () => {
+  try {
+    localStorage.removeItem("complaintUser");
+    localStorage.removeItem("authUser");
+  } catch (error) {
+    console.error("Could not remove logged in user:", error);
+  }
+};
+
+/* =========================================================
+   USER NORMALIZATION
+========================================================= */
+
+const normalizeUser = (userData) => {
+  if (!userData) return null;
+
+  return {
+    ...userData,
+
+    id: userData.id || userData._id || null,
+
+    role: normalizeRole(userData.role),
+
+    rewardPoints:
+      Number(userData.rewardPoints || 0),
+
+    resolvedComplaints:
+      Number(userData.resolvedComplaints || 0),
+
+    lastReward:
+      userData.lastReward || null,
+  };
+};
+
+/* =========================================================
+   AUTH PROVIDER
+========================================================= */
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
-    const savedUser =
-      localStorage.getItem("complaintUser");
-
-    try {
-      return savedUser
-        ? JSON.parse(savedUser)
-        : null;
-    } catch {
-      localStorage.removeItem("complaintUser");
-      return null;
-    }
+    return getStoredUser();
   });
 
-  // =========================================================
-  // LOGIN
-  // =========================================================
+  /* =======================================================
+     VERIFY EXISTING LOGIN ON PAGE REFRESH
+  ======================================================= */
 
-  const login = (email, password) => {
-    const savedUser =
-      localStorage.getItem("registeredUser");
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
 
-    if (savedUser) {
+    if (!token) return;
+
+    let mounted = true;
+
+    const verifySession = async () => {
       try {
-        const userData =
-          JSON.parse(savedUser);
+        const currentUser = await getCurrentUser();
 
-        if (
-          userData.email === email &&
-          userData.password === password
-        ) {
-          const finalUser = {
-            ...userData,
+        if (!mounted) return;
 
-            rewardPoints:
-              userData.rewardPoints || 0,
+        const finalUser = normalizeUser(currentUser);
 
-            resolvedComplaints:
-              userData.resolvedComplaints || 0,
-          };
+        setUser(finalUser);
+        saveLoggedInUser(finalUser);
 
-          setUser(finalUser);
-
-          localStorage.setItem(
-            "complaintUser",
-            JSON.stringify(finalUser)
-          );
-
-          return {
-            success: true,
-          };
-        }
-      } catch {
-        localStorage.removeItem(
-          "registeredUser"
+        console.log(
+          "SESSION VERIFIED:",
+          finalUser
         );
+      } catch (error) {
+        console.error(
+          "Session verification failed:",
+          error.message
+        );
+
+        localStorage.removeItem("authToken");
+        removeLoggedInUser();
+
+        if (mounted) {
+          setUser(null);
+        }
       }
-    }
+    };
 
-    // =====================================================
-    // DEMO LOGIN
-    // =====================================================
+    verifySession();
 
-    if (
-      email === "demo@gmail.com" &&
-      password === "123456"
-    ) {
-      const demoUser = {
-        name: "Demo User",
-        email: "demo@gmail.com",
-        mobile: "9876543210",
-        city: "Solapur",
-        address: "",
-        rewardPoints: 0,
-        resolvedComplaints: 0,
-      };
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
-      setUser(demoUser);
+  /* =======================================================
+     LOGIN
+  ======================================================= */
 
-      localStorage.setItem(
-        "complaintUser",
-        JSON.stringify(demoUser)
+  const login = async (email, password) => {
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
+
+    try {
+      console.log(
+        "BACKEND LOGIN ATTEMPT:",
+        cleanEmail
       );
 
-      localStorage.setItem(
-        "registeredUser",
-        JSON.stringify(demoUser)
+      const result = await loginUser(
+        cleanEmail,
+        cleanPassword
+      );
+
+      const finalUser = normalizeUser(
+        result.user
+      );
+
+      setUser(finalUser);
+      saveLoggedInUser(finalUser);
+
+      console.log(
+        "BACKEND LOGIN SUCCESS:",
+        finalUser
       );
 
       return {
         success: true,
+        user: finalUser,
+        token: result.token,
+      };
+    } catch (error) {
+      console.error(
+        "BACKEND LOGIN FAILED:",
+        error.message
+      );
+
+      return {
+        success: false,
+        message:
+          error.message ||
+          "Invalid email or password",
+      };
+    }
+  };
+
+  /* =======================================================
+     REGISTER
+  ======================================================= */
+
+  const register = async (userData) => {
+    try {
+      console.log(
+        "BACKEND REGISTER ATTEMPT:",
+        userData.email
+      );
+
+      const result = await registerUser({
+        name: userData.name,
+        email: userData.email,
+        password: userData.password,
+
+        // Public registration creates Citizen accounts.
+        role: "Citizen",
+      });
+
+      /*
+        Backend register returns a token.
+        We intentionally clear it so user goes to Login
+        after registration.
+      */
+
+      logoutUser();
+      removeLoggedInUser();
+
+      setUser(null);
+
+      const createdUser = normalizeUser(
+        result.user
+      );
+
+      console.log(
+        "BACKEND REGISTRATION SUCCESS:",
+        createdUser
+      );
+
+      return {
+        success: true,
+        user: createdUser,
+        message:
+          "Registration successful. Please login.",
+      };
+    } catch (error) {
+      console.error(
+        "BACKEND REGISTRATION FAILED:",
+        error.message
+      );
+
+      return {
+        success: false,
+        message:
+          error.message ||
+          "Registration failed",
+      };
+    }
+  };
+
+  /* =======================================================
+     UPDATE USER
+     
+     Kept locally for existing Profile UI.
+     Backend profile update API can be connected later.
+  ======================================================= */
+
+  const updateUser = (updatedData) => {
+    if (!user) {
+      return {
+        success: false,
+        message: "User not logged in",
       };
     }
 
-    return {
-      success: false,
-      message:
-        "Invalid email or password",
-    };
-  };
-
-  // =========================================================
-  // REGISTER
-  // =========================================================
-
-  const register = (userData) => {
-    const finalUser = {
-      ...userData,
-
-      rewardPoints: 0,
-
-      resolvedComplaints: 0,
-    };
-
-    localStorage.setItem(
-      "registeredUser",
-      JSON.stringify(finalUser)
-    );
-
-    localStorage.setItem(
-      "complaintUser",
-      JSON.stringify(finalUser)
-    );
-
-    setUser(finalUser);
-
-    return {
-      success: true,
-    };
-  };
-
-  // =========================================================
-  // UPDATE USER
-  // =========================================================
-
-  const updateUser = (updatedData) => {
     const updatedUser = {
       ...user,
       ...updatedData,
     };
 
     setUser(updatedUser);
-
-    localStorage.setItem(
-      "complaintUser",
-      JSON.stringify(updatedUser)
-    );
-
-    localStorage.setItem(
-      "registeredUser",
-      JSON.stringify(updatedUser)
-    );
+    saveLoggedInUser(updatedUser);
 
     return {
       success: true,
+      user: updatedUser,
     };
   };
 
-  // =========================================================
-  // ADD REWARD POINTS
-  // =========================================================
+  /* =======================================================
+     REWARD POINTS
+  ======================================================= */
 
   const addRewardPoints = (
     points,
@@ -177,127 +293,75 @@ export function AuthProvider({ children }) {
     if (!user) return;
 
     const currentPoints =
-      user.rewardPoints || 0;
+      Number(user.rewardPoints || 0);
 
     const updatedUser = {
       ...user,
 
       rewardPoints:
-        currentPoints + points,
+        currentPoints + Number(points),
 
       lastReward: {
-        points,
+        points: Number(points),
         reason,
-        date:
-          new Date().toLocaleString(),
+        date: new Date().toLocaleString(),
       },
     };
 
     setUser(updatedUser);
-
-    localStorage.setItem(
-      "complaintUser",
-      JSON.stringify(updatedUser)
-    );
-
-    localStorage.setItem(
-      "registeredUser",
-      JSON.stringify(updatedUser)
-    );
+    saveLoggedInUser(updatedUser);
   };
 
-  // =========================================================
-  // RESET REWARDS
-  // =========================================================
+  /* =======================================================
+     RESET REWARDS
+  ======================================================= */
 
   const resetRewards = () => {
     if (!user) return;
 
     const updatedUser = {
       ...user,
-
       rewardPoints: 0,
-
       resolvedComplaints: 0,
-
       lastReward: null,
     };
 
     setUser(updatedUser);
+    saveLoggedInUser(updatedUser);
 
-    localStorage.setItem(
-      "complaintUser",
-      JSON.stringify(updatedUser)
-    );
-
-    localStorage.setItem(
-      "registeredUser",
-      JSON.stringify(updatedUser)
+    window.dispatchEvent(
+      new Event("rewardReset")
     );
   };
 
-  // =========================================================
-  // CROSS-COMPONENT REWARD RESET
-  // =========================================================
-
-  useEffect(() => {
-    const handleRewardReset = () => {
-      const savedUser =
-        localStorage.getItem(
-          "complaintUser"
-        );
-
-      if (!savedUser) return;
-
-      try {
-        setUser(
-          JSON.parse(savedUser)
-        );
-      } catch {
-        setUser(null);
-      }
-    };
-
-    window.addEventListener(
-      "rewardReset",
-      handleRewardReset
-    );
-
-    return () => {
-      window.removeEventListener(
-        "rewardReset",
-        handleRewardReset
-      );
-    };
-  }, []);
-
-  // =========================================================
-  // LOGOUT
-  // =========================================================
+  /* =======================================================
+     LOGOUT
+  ======================================================= */
 
   const logout = () => {
+    logoutUser();
+    removeLoggedInUser();
+
+    localStorage.removeItem("registeredUser");
+
     setUser(null);
 
-    localStorage.removeItem(
-      "complaintUser"
-    );
+    console.log("USER LOGGED OUT");
   };
+
+  /* =======================================================
+     AUTH CONTEXT
+  ======================================================= */
 
   return (
     <AuthContext.Provider
       value={{
         user,
-
         login,
-
         register,
-
         updateUser,
-
         addRewardPoints,
-
         resetRewards,
-
         logout,
       }}
     >
@@ -306,9 +370,12 @@ export function AuthProvider({ children }) {
   );
 }
 
+/* =========================================================
+   USE AUTH
+========================================================= */
+
 export function useAuth() {
-  const context =
-    useContext(AuthContext);
+  const context = useContext(AuthContext);
 
   if (!context) {
     throw new Error(
@@ -318,3 +385,5 @@ export function useAuth() {
 
   return context;
 }
+
+export default AuthContext;
