@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -10,23 +9,69 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    if (loading) return;
+
     setError("");
 
-    if (!email.trim() || !password.trim()) {
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
+
+    if (!cleanEmail || !cleanPassword) {
       setError("Please enter email and password.");
       return;
     }
 
-    const result = login(email.trim(), password);
+    setLoading(true);
 
-    if (result.success) {
-      navigate("/dashboard", { replace: true });
-    } else {
-      setError(result.message || "Invalid email or password.");
+    try {
+      const result = login(cleanEmail, cleanPassword);
+
+      if (!result?.success) {
+        setError(
+          result?.message || "Invalid email or password."
+        );
+        setLoading(false);
+        return;
+      }
+
+      const loggedInUser = result.user;
+
+      console.log("LOGIN SUCCESS:", loggedInUser);
+
+      // Role based redirect
+      switch (loggedInUser?.role) {
+        case "admin":
+          navigate("/admin", { replace: true });
+          break;
+
+        case "college":
+          navigate("/college-dashboard", {
+            replace: true,
+          });
+          break;
+
+        case "industry":
+          navigate("/industry-dashboard", {
+            replace: true,
+          });
+          break;
+
+        case "citizen":
+        default:
+          navigate("/dashboard", {
+            replace: true,
+          });
+          break;
+      }
+    } catch (error) {
+      console.error("LOGIN ERROR:", error);
+      setError("Something went wrong during login.");
+      setLoading(false);
     }
   };
 
@@ -34,25 +79,24 @@ function Login() {
     <div className="auth-page">
       <div className="auth-card">
 
-        {/* Logo */}
         <div className="auth-logo">
           🏛️
         </div>
 
-        <h1>Welcome to SamadhanSetu</h1>
+        <h1>
+          Welcome to SamadhanSetu
+        </h1>
 
         <p className="auth-subtitle">
           Login to report and track community problems.
         </p>
 
-        {/* Error */}
         {error && (
           <div className="auth-error">
             ❌ {error}
           </div>
         )}
 
-        {/* Login Form */}
         <form onSubmit={handleSubmit}>
 
           <div className="form-group">
@@ -62,8 +106,11 @@ function Login() {
               type="email"
               placeholder="Enter your email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) =>
+                setEmail(e.target.value)
+              }
               autoComplete="email"
+              disabled={loading}
             />
           </div>
 
@@ -74,21 +121,26 @@ function Login() {
               type="password"
               placeholder="Enter your password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) =>
+                setPassword(e.target.value)
+              }
               autoComplete="current-password"
+              disabled={loading}
             />
           </div>
 
           <button
             type="submit"
             className="auth-submit-btn"
+            disabled={loading}
           >
-            🔐 Login
+            {loading
+              ? "⏳ Logging in..."
+              : "🔐 Login"}
           </button>
 
         </form>
 
-        {/* Create Account */}
         <div className="create-account-section">
           <p>
             Don't have an account?
@@ -108,4 +160,3 @@ function Login() {
 }
 
 export default Login;
-

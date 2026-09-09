@@ -13516,3 +13516,2752 @@ a {
   }
 }
 
+/* =========================================================
+   COLLEGE DASHBOARD
+   SamadhanSetu - Professional SIH Style
+========================================================= */
+
+.college-dashboard {
+  width: 100%;
+  min-height: 100vh;
+  padding: 28px;
+  box-sizing: border-box;
+  background: #f6f8fc;
+  color: #172033;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.college-dashboard-header {
+  position: relative;
+  overflow: hidden;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 28px 32px;
+  margin-bottom: 22px;
+
+  border-radius: 20px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #fff7ed 0%,
+      #ffffff 48%,
+      #f0fdf4 100%
+    );
+
+  border: 1px solid #e5e7eb;
+
+  box-shadow:
+    0 10px 30px rgba(15, 23, 42, 0.07);
+}
+
+.college-dashboard-header::before {
+  content: "";
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 5px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #ff9933 0%,
+      #ff9933 33.33%,
+      #ffffff 33.33%,
+      #ffffff 66.66%,
+      #138808 66.66%,
+      #138808 100%
+    );
+}
+
+.dashboard-badge {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 7px 12px;
+
+  margin-bottom: 10px;
+
+  border-radius: 20px;
+
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+
+  color: #c2410c;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  letter-spacing: 0.7px;
+}
+
+.college-dashboard-header h1 {
+  margin: 0 0 8px;
+
+  font-size: 29px;
+  font-weight: 800;
+
+  color: #172554;
+}
+
+.college-dashboard-header p {
+  margin: 0;
+
+  color: #64748b;
+
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.college-header-icon {
+  width: 80px;
+  height: 80px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 20px;
+
+  font-size: 40px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffedd5,
+      #dcfce7
+    );
+
+  border: 1px solid #e5e7eb;
+
+  box-shadow:
+    0 10px 20px rgba(15, 23, 42, 0.08);
+}
+
+/* =========================================================
+   ROLE INFORMATION
+========================================================= */
+
+.college-role-info {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 14px;
+
+  margin-bottom: 22px;
+}
+
+.college-role-info > div {
+  padding: 14px 16px;
+
+  background: #ffffff;
+
+  border: 1px solid #e2e8f0;
+
+  border-radius: 12px;
+
+  color: #475569;
+
+  font-size: 13px;
+
+  box-shadow:
+    0 4px 15px rgba(15, 23, 42, 0.04);
+}
+
+.college-role-info strong {
+  color: #1e293b;
+}
+
+/* =========================================================
+   STATS
+========================================================= */
+
+.college-stats-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, 1fr);
+
+  gap: 16px;
+
+  margin-bottom: 26px;
+}
+
+.college-stat-card {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+
+  padding: 19px;
+
+  background: #ffffff;
+
+  border: 1px solid #e2e8f0;
+
+  border-radius: 15px;
+
+  box-shadow:
+    0 5px 16px rgba(15, 23, 42, 0.05);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.college-stat-card:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 9px 22px rgba(15, 23, 42, 0.09);
+}
+
+.college-stat-card .stat-icon {
+  width: 46px;
+  height: 46px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+
+  font-size: 21px;
+
+  background: #eff6ff;
+}
+
+.college-stat-card h3 {
+  margin: 0;
+
+  font-size: 25px;
+  font-weight: 800;
+
+  color: #172033;
+}
+
+.college-stat-card p {
+  margin: 3px 0 0;
+
+  color: #64748b;
+
+  font-size: 12px;
+}
+
+/* Pending */
+
+.college-stat-card.pending .stat-icon {
+  background: #fff7ed;
+}
+
+/* Progress */
+
+.college-stat-card.progress .stat-icon {
+  background: #eff6ff;
+}
+
+/* Solved */
+
+.college-stat-card.solved .stat-icon {
+  background: #f0fdf4;
+}
+
+/* =========================================================
+   SECTION
+========================================================= */
+
+.college-section {
+  margin-bottom: 26px;
+}
+
+.section-heading {
+  display: flex;
+
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 14px;
+}
+
+.section-heading h2 {
+  margin: 0 0 4px;
+
+  color: #172033;
+
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.section-heading p {
+  margin: 0;
+
+  color: #64748b;
+
+  font-size: 13px;
+}
+
+/* =========================================================
+   PROBLEM LIST
+========================================================= */
+
+.college-problem-list {
+  display: flex;
+  flex-direction: column;
+
+  gap: 16px;
+}
+
+/* =========================================================
+   PROBLEM CARD
+========================================================= */
+
+.college-problem-card {
+  position: relative;
+
+  background: #ffffff;
+
+  border: 1px solid #e2e8f0;
+
+  border-radius: 16px;
+
+  padding: 20px;
+
+  box-shadow:
+    0 5px 16px rgba(15, 23, 42, 0.05);
+
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.college-problem-card:hover {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 9px 22px rgba(15, 23, 42, 0.08);
+}
+
+.college-problem-card.active-card {
+  border-left: 4px solid #2563eb;
+}
+
+/* =========================================================
+   PROBLEM TOP
+========================================================= */
+
+.problem-card-top {
+  display: flex;
+
+  justify-content: space-between;
+  align-items: flex-start;
+
+  gap: 15px;
+
+  margin-bottom: 16px;
+}
+
+.problem-id {
+  display: inline-block;
+
+  margin-bottom: 6px;
+
+  color: #64748b;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.problem-card-top h3 {
+  margin: 0;
+
+  color: #172033;
+
+  font-size: 17px;
+  font-weight: 800;
+
+  line-height: 1.45;
+}
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.status {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 6px 10px;
+
+  border-radius: 20px;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  white-space: nowrap;
+}
+
+.pending-status {
+  background: #fff7ed;
+  color: #c2410c;
+
+  border: 1px solid #fed7aa;
+}
+
+.progress-status {
+  background: #eff6ff;
+  color: #1d4ed8;
+
+  border: 1px solid #bfdbfe;
+}
+
+.resolved-status {
+  background: #f0fdf4;
+  color: #15803d;
+
+  border: 1px solid #bbf7d0;
+}
+
+/* =========================================================
+   PROBLEM DETAILS
+========================================================= */
+
+.problem-details {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 12px;
+
+  margin-bottom: 14px;
+}
+
+.problem-details > div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+
+  padding: 11px;
+
+  border-radius: 10px;
+
+  background: #f8fafc;
+
+  border: 1px solid #eef2f7;
+}
+
+.problem-details strong {
+  color: #475569;
+
+  font-size: 11px;
+}
+
+.problem-details span {
+  color: #172033;
+
+  font-size: 12px;
+
+  line-height: 1.45;
+
+  word-break: break-word;
+}
+
+/* =========================================================
+   DESCRIPTION
+========================================================= */
+
+.problem-description {
+  margin: 0 0 14px;
+
+  color: #475569;
+
+  font-size: 13px;
+
+  line-height: 1.65;
+}
+
+/* =========================================================
+   EXTRA INFO
+========================================================= */
+
+.college-problem-extra {
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 16px;
+
+  padding: 11px 13px;
+
+  margin-bottom: 16px;
+
+  border-radius: 10px;
+
+  background: #f8fafc;
+
+  color: #64748b;
+
+  font-size: 11px;
+}
+
+/* =========================================================
+   ACTION BUTTONS
+========================================================= */
+
+.college-action-buttons {
+  display: flex;
+
+  gap: 10px;
+
+  justify-content: flex-end;
+
+  padding-top: 14px;
+
+  border-top: 1px solid #eef2f7;
+}
+
+.accept-problem-btn,
+.reject-problem-btn,
+.start-work-btn,
+.resolve-problem-btn {
+  border: none;
+
+  min-height: 40px;
+
+  padding: 9px 15px;
+
+  border-radius: 9px;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+/* Accept */
+
+.accept-problem-btn {
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #15803d,
+      #16a34a
+    );
+
+  box-shadow:
+    0 6px 14px rgba(22, 163, 74, 0.18);
+}
+
+.accept-problem-btn:hover {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 9px 18px rgba(22, 163, 74, 0.25);
+}
+
+/* Reject */
+
+.reject-problem-btn {
+  color: #b91c1c;
+
+  background: #fef2f2;
+
+  border: 1px solid #fecaca;
+}
+
+.reject-problem-btn:hover {
+  background: #fee2e2;
+}
+
+/* Start Work */
+
+.start-work-btn {
+  color: #1d4ed8;
+
+  background: #eff6ff;
+
+  border: 1px solid #bfdbfe;
+}
+
+.start-work-btn:hover {
+  background: #dbeafe;
+}
+
+.start-work-btn:disabled {
+  opacity: 0.65;
+
+  cursor: not-allowed;
+
+  transform: none;
+}
+
+/* Resolve */
+
+.resolve-problem-btn {
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #2563eb,
+      #1d4ed8
+    );
+
+  box-shadow:
+    0 6px 14px rgba(37, 99, 235, 0.18);
+}
+
+.resolve-problem-btn:hover {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 9px 18px rgba(37, 99, 235, 0.25);
+}
+
+/* =========================================================
+   WORK ACTIONS
+========================================================= */
+
+.college-work-actions {
+  display: flex;
+
+  justify-content: flex-end;
+
+  gap: 10px;
+
+  padding-top: 14px;
+
+  border-top: 1px solid #eef2f7;
+}
+
+/* =========================================================
+   TRACKING
+========================================================= */
+
+.tracking-box {
+  display: flex;
+
+  align-items: flex-start;
+
+  margin: 18px 0;
+
+  padding: 18px 14px;
+
+  border-radius: 13px;
+
+  background: #f8fafc;
+
+  border: 1px solid #e2e8f0;
+
+  overflow-x: auto;
+}
+
+.tracking-step {
+  min-width: 90px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  text-align: center;
+
+  gap: 7px;
+}
+
+.tracking-step span {
+  width: 31px;
+  height: 31px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #e2e8f0;
+
+  color: #64748b;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.tracking-step.completed span {
+  background: #16a34a;
+
+  color: white;
+}
+
+.tracking-step.current span {
+  background: #2563eb;
+
+  color: white;
+
+  box-shadow:
+    0 0 0 5px rgba(37, 99, 235, 0.10);
+}
+
+.tracking-step p {
+  margin: 0;
+
+  color: #64748b;
+
+  font-size: 10px;
+
+  line-height: 1.35;
+
+  max-width: 85px;
+}
+
+.tracking-step.completed p,
+.tracking-step.current p {
+  color: #334155;
+
+  font-weight: 700;
+}
+
+.tracking-line {
+  flex: 1;
+
+  min-width: 25px;
+
+  height: 2px;
+
+  margin-top: 15px;
+
+  background: #cbd5e1;
+}
+
+/* =========================================================
+   RESOLVED
+========================================================= */
+
+.resolved-message {
+  padding: 12px 14px;
+
+  border-radius: 10px;
+
+  background: #f0fdf4;
+
+  border: 1px solid #bbf7d0;
+
+  color: #166534;
+
+  font-size: 13px;
+
+  font-weight: 700;
+
+  text-align: center;
+}
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.college-empty-state {
+  padding: 42px 20px;
+
+  text-align: center;
+
+  background: #ffffff;
+
+  border: 1px dashed #cbd5e1;
+
+  border-radius: 16px;
+}
+
+.college-empty-state > div {
+  font-size: 42px;
+
+  margin-bottom: 9px;
+}
+
+.college-empty-state h3 {
+  margin: 0 0 6px;
+
+  color: #172033;
+
+  font-size: 17px;
+}
+
+.college-empty-state p {
+  margin: 0;
+
+  color: #64748b;
+
+  font-size: 13px;
+}
+
+/* =========================================================
+   DEBUG BOX
+========================================================= */
+
+.college-debug-box {
+  margin-top: 20px;
+
+  padding: 13px 15px;
+
+  border-radius: 10px;
+
+  background: #fffbeb;
+
+  border: 1px solid #fde68a;
+
+  color: #92400e;
+
+  font-size: 11px;
+}
+
+.college-debug-box strong {
+  display: block;
+
+  margin-bottom: 7px;
+}
+
+.college-debug-box p {
+  margin: 3px 0;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1000px) {
+  .college-stats-grid {
+    grid-template-columns:
+      repeat(2, 1fr);
+  }
+
+  .college-role-info {
+    grid-template-columns:
+      1fr;
+  }
+
+  .problem-details {
+    grid-template-columns:
+      1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .college-dashboard {
+    padding: 16px;
+  }
+
+  .college-dashboard-header {
+    padding: 22px;
+  }
+
+  .college-dashboard-header h1 {
+    font-size: 23px;
+  }
+
+  .college-header-icon {
+    width: 60px;
+    height: 60px;
+
+    font-size: 30px;
+  }
+
+  .college-stats-grid {
+    grid-template-columns:
+      1fr;
+  }
+
+  .problem-card-top {
+    flex-direction: column;
+  }
+
+  .college-action-buttons,
+  .college-work-actions {
+    flex-direction: column;
+  }
+
+  .accept-problem-btn,
+  .reject-problem-btn,
+  .start-work-btn,
+  .resolve-problem-btn {
+    width: 100%;
+  }
+
+  .tracking-box {
+    padding: 14px 8px;
+  }
+}
+
+/* =========================================================
+   INDUSTRY DASHBOARD
+   SamadhanSetu - Professional SIH Style
+========================================================= */
+
+.industry-dashboard {
+  width: 100%;
+  min-height: 100vh;
+  padding: 28px;
+  box-sizing: border-box;
+  background: #f6f8fc;
+  color: #172033;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.industry-dashboard-header {
+  position: relative;
+  overflow: hidden;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 28px 32px;
+  margin-bottom: 22px;
+
+  border-radius: 20px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #fff7ed 0%,
+      #ffffff 48%,
+      #eefcf4 100%
+    );
+
+  border: 1px solid #e5e7eb;
+
+  box-shadow:
+    0 10px 30px rgba(15, 23, 42, 0.07);
+}
+
+.industry-dashboard-header::before {
+  content: "";
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 5px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #ff9933 0%,
+      #ff9933 33.33%,
+      #ffffff 33.33%,
+      #ffffff 66.66%,
+      #138808 66.66%,
+      #138808 100%
+    );
+}
+
+/* Badge */
+
+.industry-badge {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+}
+
+.industry-dashboard-header h1 {
+  margin: 0 0 8px;
+
+  font-size: 29px;
+  font-weight: 800;
+
+  color: #172554;
+}
+
+.industry-dashboard-header p {
+  margin: 0;
+
+  color: #64748b;
+
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.industry-header-icon {
+  width: 80px;
+  height: 80px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 20px;
+
+  font-size: 40px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #dbeafe,
+      #dcfce7
+    );
+
+  border: 1px solid #e5e7eb;
+
+  box-shadow:
+    0 10px 20px rgba(15, 23, 42, 0.08);
+}
+
+/* =========================================================
+   ROLE INFORMATION
+========================================================= */
+
+.industry-role-info {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 14px;
+
+  margin-bottom: 22px;
+}
+
+.industry-role-info > div {
+  padding: 14px 16px;
+
+  background: #ffffff;
+
+  border: 1px solid #e2e8f0;
+
+  border-radius: 12px;
+
+  color: #475569;
+
+  font-size: 13px;
+
+  box-shadow:
+    0 4px 15px rgba(15, 23, 42, 0.04);
+}
+
+.industry-role-info strong {
+  color: #1e293b;
+}
+
+/* =========================================================
+   STATS
+========================================================= */
+
+.industry-stats-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, 1fr);
+
+  gap: 16px;
+
+  margin-bottom: 26px;
+}
+
+.industry-stat-card {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+
+  padding: 19px;
+
+  background: #ffffff;
+
+  border: 1px solid #e2e8f0;
+
+  border-radius: 15px;
+
+  box-shadow:
+    0 5px 16px rgba(15, 23, 42, 0.05);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.industry-stat-card:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 9px 22px rgba(15, 23, 42, 0.09);
+}
+
+.industry-stat-card .stat-icon {
+  width: 46px;
+  height: 46px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+
+  font-size: 21px;
+
+  background: #eff6ff;
+}
+
+.industry-stat-card h3 {
+  margin: 0;
+
+  font-size: 25px;
+  font-weight: 800;
+
+  color: #172033;
+}
+
+.industry-stat-card p {
+  margin: 3px 0 0;
+
+  color: #64748b;
+
+  font-size: 12px;
+}
+
+/* Pending */
+
+.industry-stat-card.pending .stat-icon {
+  background: #fff7ed;
+}
+
+/* Progress */
+
+.industry-stat-card.progress .stat-icon {
+  background: #eff6ff;
+}
+
+/* Solved */
+
+.industry-stat-card.solved .stat-icon {
+  background: #f0fdf4;
+}
+
+/* =========================================================
+   SECTION
+========================================================= */
+
+.industry-section {
+  margin-bottom: 26px;
+}
+
+.industry-section .section-heading {
+  display: flex;
+
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 14px;
+}
+
+.industry-section .section-heading h2 {
+  margin: 0 0 4px;
+
+  color: #172033;
+
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.industry-section .section-heading p {
+  margin: 0;
+
+  color: #64748b;
+
+  font-size: 13px;
+}
+
+/* =========================================================
+   PROBLEM LIST
+========================================================= */
+
+.industry-problem-list {
+  display: flex;
+  flex-direction: column;
+
+  gap: 16px;
+}
+
+/* =========================================================
+   PROBLEM CARD
+========================================================= */
+
+.industry-problem-card {
+  position: relative;
+
+  background: #ffffff;
+
+  border: 1px solid #e2e8f0;
+
+  border-radius: 16px;
+
+  padding: 20px;
+
+  box-shadow:
+    0 5px 16px rgba(15, 23, 42, 0.05);
+
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.industry-problem-card:hover {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 9px 22px rgba(15, 23, 42, 0.08);
+}
+
+.industry-problem-card.active-card {
+  border-left: 4px solid #2563eb;
+}
+
+/* =========================================================
+   TOP
+========================================================= */
+
+.industry-problem-card .problem-card-top {
+  display: flex;
+
+  justify-content: space-between;
+  align-items: flex-start;
+
+  gap: 15px;
+
+  margin-bottom: 16px;
+}
+
+.industry-problem-card .problem-id {
+  display: inline-block;
+
+  margin-bottom: 6px;
+
+  color: #64748b;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.industry-problem-card .problem-card-top h3 {
+  margin: 0;
+
+  color: #172033;
+
+  font-size: 17px;
+  font-weight: 800;
+
+  line-height: 1.45;
+}
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.industry-dashboard .status {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 6px 10px;
+
+  border-radius: 20px;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  white-space: nowrap;
+}
+
+.industry-dashboard .pending-status {
+  background: #fff7ed;
+
+  color: #c2410c;
+
+  border: 1px solid #fed7aa;
+}
+
+.industry-dashboard .progress-status {
+  background: #eff6ff;
+
+  color: #1d4ed8;
+
+  border: 1px solid #bfdbfe;
+}
+
+.industry-dashboard .resolved-status {
+  background: #f0fdf4;
+
+  color: #15803d;
+
+  border: 1px solid #bbf7d0;
+}
+
+/* =========================================================
+   DETAILS
+========================================================= */
+
+.industry-problem-card .problem-details {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 12px;
+
+  margin-bottom: 14px;
+}
+
+.industry-problem-card .problem-details > div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+
+  padding: 11px;
+
+  border-radius: 10px;
+
+  background: #f8fafc;
+
+  border: 1px solid #eef2f7;
+}
+
+.industry-problem-card .problem-details strong {
+  color: #475569;
+
+  font-size: 11px;
+}
+
+.industry-problem-card .problem-details span {
+  color: #172033;
+
+  font-size: 12px;
+
+  line-height: 1.45;
+
+  word-break: break-word;
+}
+
+/* =========================================================
+   DESCRIPTION
+========================================================= */
+
+.industry-problem-card .problem-description {
+  margin: 0 0 14px;
+
+  color: #475569;
+
+  font-size: 13px;
+
+  line-height: 1.65;
+}
+
+/* =========================================================
+   ACTION BUTTONS
+========================================================= */
+
+.industry-action-buttons {
+  display: flex;
+
+  justify-content: flex-end;
+
+  gap: 10px;
+
+  padding-top: 14px;
+
+  border-top: 1px solid #eef2f7;
+}
+
+.industry-action-buttons .accept-problem-btn,
+.industry-action-buttons .reject-problem-btn {
+  border: none;
+
+  min-height: 40px;
+
+  padding: 9px 16px;
+
+  border-radius: 9px;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+/* Accept */
+
+.industry-action-buttons .accept-problem-btn {
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #15803d,
+      #16a34a
+    );
+
+  box-shadow:
+    0 6px 14px rgba(22, 163, 74, 0.18);
+}
+
+.industry-action-buttons .accept-problem-btn:hover {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 9px 18px rgba(22, 163, 74, 0.25);
+}
+
+/* Reject */
+
+.industry-action-buttons .reject-problem-btn {
+  color: #b91c1c;
+
+  background: #fef2f2;
+
+  border: 1px solid #fecaca;
+}
+
+.industry-action-buttons .reject-problem-btn:hover {
+  background: #fee2e2;
+}
+
+/* =========================================================
+   TRACKING
+========================================================= */
+
+.industry-dashboard .tracking-box {
+  display: flex;
+
+  align-items: flex-start;
+
+  margin: 18px 0;
+
+  padding: 18px 14px;
+
+  border-radius: 13px;
+
+  background: #f8fafc;
+
+  border: 1px solid #e2e8f0;
+
+  overflow-x: auto;
+}
+
+.industry-dashboard .tracking-step {
+  min-width: 90px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  text-align: center;
+
+  gap: 7px;
+}
+
+.industry-dashboard .tracking-step span {
+  width: 31px;
+  height: 31px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #e2e8f0;
+
+  color: #64748b;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.industry-dashboard .tracking-step.completed span {
+  background: #16a34a;
+
+  color: white;
+}
+
+.industry-dashboard .tracking-step.current span {
+  background: #2563eb;
+
+  color: white;
+
+  box-shadow:
+    0 0 0 5px rgba(37, 99, 235, 0.10);
+}
+
+.industry-dashboard .tracking-step p {
+  margin: 0;
+
+  color: #64748b;
+
+  font-size: 10px;
+
+  line-height: 1.35;
+
+  max-width: 85px;
+}
+
+.industry-dashboard .tracking-step.completed p,
+.industry-dashboard .tracking-step.current p {
+  color: #334155;
+
+  font-weight: 700;
+}
+
+.industry-dashboard .tracking-line {
+  flex: 1;
+
+  min-width: 25px;
+
+  height: 2px;
+
+  margin-top: 15px;
+
+  background: #cbd5e1;
+}
+
+/* =========================================================
+   RESOLVE BUTTON
+========================================================= */
+
+.industry-dashboard .resolve-problem-btn {
+  border: none;
+
+  width: 100%;
+
+  min-height: 42px;
+
+  padding: 10px 16px;
+
+  border-radius: 10px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #2563eb,
+      #1d4ed8
+    );
+
+  color: white;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 7px 15px rgba(37, 99, 235, 0.18);
+
+  transition: all 0.2s ease;
+}
+
+.industry-dashboard .resolve-problem-btn:hover {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 10px 20px rgba(37, 99, 235, 0.25);
+}
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.industry-empty-state {
+  padding: 42px 20px;
+
+  text-align: center;
+
+  background: #ffffff;
+
+  border: 1px dashed #cbd5e1;
+
+  border-radius: 16px;
+}
+
+.industry-empty-state > div {
+  font-size: 42px;
+
+  margin-bottom: 9px;
+}
+
+.industry-empty-state h3 {
+  margin: 0 0 6px;
+
+  color: #172033;
+
+  font-size: 17px;
+}
+
+.industry-empty-state p {
+  margin: 0;
+
+  color: #64748b;
+
+  font-size: 13px;
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 1000px) {
+
+  .industry-stats-grid {
+    grid-template-columns:
+      repeat(2, 1fr);
+  }
+
+  .industry-role-info {
+    grid-template-columns:
+      1fr;
+  }
+
+  .industry-problem-card .problem-details {
+    grid-template-columns:
+      1fr;
+  }
+}
+
+@media (max-width: 700px) {
+
+  .industry-dashboard {
+    padding: 16px;
+  }
+
+  .industry-dashboard-header {
+    padding: 22px;
+  }
+
+  .industry-dashboard-header h1 {
+    font-size: 23px;
+  }
+
+  .industry-header-icon {
+    width: 60px;
+    height: 60px;
+
+    font-size: 30px;
+  }
+
+  .industry-stats-grid {
+    grid-template-columns:
+      1fr;
+  }
+
+  .industry-problem-card .problem-card-top {
+    flex-direction: column;
+  }
+
+  .industry-action-buttons {
+    flex-direction: column;
+  }
+
+  .industry-action-buttons .accept-problem-btn,
+  .industry-action-buttons .reject-problem-btn {
+    width: 100%;
+  }
+
+  .industry-dashboard .tracking-box {
+    padding: 14px 8px;
+  }
+}
+
+/* =========================================================
+   ADMIN DASHBOARD
+   SamadhanSetu - SIH / Indian Theme
+========================================================= */
+
+.admin-page {
+  width: 100%;
+  min-height: 100vh;
+  padding: 28px;
+  box-sizing: border-box;
+
+  background:
+    linear-gradient(
+      180deg,
+      #f8fafc 0%,
+      #f8fafc 65%,
+      #f0fdf4 100%
+    );
+
+  color: #172033;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.admin-page .dashboard-header {
+  position: relative;
+  overflow: hidden;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 28px 32px;
+  margin-bottom: 24px;
+
+  border-radius: 20px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #fff7ed 0%,
+      #ffffff 48%,
+      #f0fdf4 100%
+    );
+
+  border: 1px solid #e2e8f0;
+
+  box-shadow:
+    0 10px 30px rgba(15, 23, 42, 0.07);
+}
+
+/* Tricolor top strip */
+
+.admin-page .dashboard-header::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 5px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #ff9933 0%,
+      #ff9933 33.33%,
+      #ffffff 33.33%,
+      #ffffff 66.66%,
+      #138808 66.66%,
+      #138808 100%
+    );
+}
+
+.admin-page .dashboard-header h1 {
+  margin: 0 0 9px;
+
+  color: #172554;
+
+  font-size: 29px;
+  font-weight: 800;
+}
+
+.admin-page .dashboard-header p {
+  margin: 0;
+
+  max-width: 850px;
+
+  color: #64748b;
+
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Admin badge */
+
+.admin-page .dashboard-badge {
+  display: inline-flex;
+
+  align-items: center;
+
+  margin-bottom: 10px;
+
+  padding: 7px 13px;
+
+  border-radius: 20px;
+
+  background: #fff7ed;
+
+  border: 1px solid #fed7aa;
+
+  color: #c2410c;
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.7px;
+}
+
+/* =========================================================
+   STATS
+========================================================= */
+
+.admin-page .stats-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, 1fr);
+
+  gap: 16px;
+
+  margin-bottom: 24px;
+}
+
+.admin-page .stat-card {
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+
+  padding: 18px;
+
+  min-height: 82px;
+
+  background: #ffffff;
+
+  border: 1px solid #e2e8f0;
+
+  border-radius: 15px;
+
+  box-shadow:
+    0 5px 16px rgba(15, 23, 42, 0.05);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.admin-page .stat-card:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 10px 24px rgba(15, 23, 42, 0.09);
+}
+
+.admin-page .stat-icon {
+  width: 47px;
+  height: 47px;
+
+  flex-shrink: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 12px;
+
+  font-size: 21px;
+
+  background: #eff6ff;
+}
+
+.admin-page .stat-card h3 {
+  margin: 0;
+
+  color: #172033;
+
+  font-size: 24px;
+
+  font-weight: 800;
+}
+
+.admin-page .stat-card p {
+  margin: 3px 0 0;
+
+  color: #64748b;
+
+  font-size: 12px;
+}
+
+/* Slight visual variation */
+
+.admin-page .stat-card:nth-child(2) .stat-icon {
+  background: #fef3c7;
+}
+
+.admin-page .stat-card:nth-child(3) .stat-icon {
+  background: #fff7ed;
+}
+
+.admin-page .stat-card:nth-child(4) .stat-icon {
+  background: #eff6ff;
+}
+
+.admin-page .stat-card:nth-child(5) .stat-icon {
+  background: #dbeafe;
+}
+
+.admin-page .stat-card:nth-child(6) .stat-icon {
+  background: #dcfce7;
+}
+
+.admin-page .stat-card:nth-child(7) .stat-icon {
+  background: #f3e8ff;
+}
+
+.admin-page .stat-card:nth-child(8) .stat-icon {
+  background: #e0f2fe;
+}
+
+/* =========================================================
+   DASHBOARD CARD
+========================================================= */
+
+.admin-page .dashboard-card {
+  background: #ffffff;
+
+  border: 1px solid #e2e8f0;
+
+  border-radius: 16px;
+
+  box-shadow:
+    0 5px 17px rgba(15, 23, 42, 0.05);
+}
+
+/* =========================================================
+   FILTER CARD
+========================================================= */
+
+.admin-page .admin-filter-card {
+  padding: 18px 20px;
+
+  margin-bottom: 18px;
+}
+
+.admin-page .section-title-row {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  gap: 15px;
+}
+
+.admin-page .section-title-row h2 {
+  margin: 0;
+
+  color: #172033;
+
+  font-size: 19px;
+
+  font-weight: 800;
+}
+
+.admin-filter-controls {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+}
+
+.admin-search-input {
+  width: 230px;
+
+  height: 41px;
+
+  box-sizing: border-box;
+
+  border: 1px solid #d7dee8;
+
+  border-radius: 9px;
+
+  padding: 0 12px;
+
+  background: #f8fafc;
+
+  color: #172033;
+
+  font-size: 12px;
+
+  outline: none;
+
+  transition: 0.2s ease;
+}
+
+.admin-search-input:focus {
+  background: #ffffff;
+
+  border-color: #2563eb;
+
+  box-shadow:
+    0 0 0 3px rgba(37, 99, 235, 0.08);
+}
+
+.admin-filter {
+  min-width: 190px;
+
+  height: 41px;
+
+  box-sizing: border-box;
+
+  padding: 0 11px;
+
+  border-radius: 9px;
+
+  border: 1px solid #d7dee8;
+
+  background: #f8fafc;
+
+  color: #334155;
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  outline: none;
+
+  cursor: pointer;
+}
+
+.admin-filter:focus {
+  border-color: #ff9933;
+
+  box-shadow:
+    0 0 0 3px rgba(255, 153, 51, 0.09);
+}
+
+/* =========================================================
+   COMPLAINT LIST
+========================================================= */
+
+.admin-page .admin-complaints {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 18px;
+}
+
+/* =========================================================
+   COMPLAINT CARD
+========================================================= */
+
+.admin-page .admin-complaint-card {
+  padding: 22px;
+
+  position: relative;
+
+  overflow: hidden;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.admin-page .admin-complaint-card:hover {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+/* Tricolor left line */
+
+.admin-page .admin-complaint-card::before {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  top: 0;
+
+  width: 4px;
+  height: 100%;
+
+  background:
+    linear-gradient(
+      180deg,
+      #ff9933 0%,
+      #ff9933 33%,
+      #000080 33%,
+      #000080 66%,
+      #138808 66%,
+      #138808 100%
+    );
+}
+
+/* =========================================================
+   COMPLAINT TOP
+========================================================= */
+
+.admin-page .complaint-top {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: flex-start;
+
+  gap: 18px;
+
+  padding-left: 4px;
+
+  margin-bottom: 20px;
+}
+
+.admin-page .complaint-top h2 {
+  margin: 0 0 6px;
+
+  color: #172033;
+
+  font-size: 20px;
+
+  font-weight: 800;
+}
+
+.admin-page .complaint-id {
+  margin: 0;
+
+  color: #64748b;
+
+  font-size: 11px;
+}
+
+.admin-page .complaint-id strong {
+  color: #334155;
+}
+
+/* =========================================================
+   STATUS BADGES
+========================================================= */
+
+.admin-page .status-badge {
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  min-height: 28px;
+
+  padding: 5px 11px;
+
+  border-radius: 20px;
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  white-space: nowrap;
+}
+
+.admin-page .status-submitted {
+  background: #fef3c7;
+
+  color: #92400e;
+
+  border: 1px solid #fde68a;
+}
+
+.admin-page .status-review {
+  background: #ede9fe;
+
+  color: #6d28d9;
+
+  border: 1px solid #ddd6fe;
+}
+
+.admin-page .status-progress {
+  background: #eff6ff;
+
+  color: #1d4ed8;
+
+  border: 1px solid #bfdbfe;
+}
+
+.admin-page .status-resolved {
+  background: #f0fdf4;
+
+  color: #15803d;
+
+  border: 1px solid #bbf7d0;
+}
+
+.admin-page .status-rejected {
+  background: #fef2f2;
+
+  color: #b91c1c;
+
+  border: 1px solid #fecaca;
+}
+
+/* =========================================================
+   ADMIN SECTION
+========================================================= */
+
+.admin-page .admin-section {
+  margin-bottom: 18px;
+
+  padding: 17px;
+
+  border-radius: 13px;
+
+  background: #fbfdff;
+
+  border: 1px solid #e8edf3;
+}
+
+.admin-page .admin-section > h3 {
+  margin: 0 0 13px;
+
+  color: #1e293b;
+
+  font-size: 14px;
+
+  font-weight: 800;
+}
+
+/* =========================================================
+   INFO GRID
+========================================================= */
+
+.admin-page .admin-info-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, 1fr);
+
+  gap: 10px;
+}
+
+.admin-page .admin-info-grid > div {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 4px;
+
+  padding: 11px;
+
+  border-radius: 9px;
+
+  background: #ffffff;
+
+  border: 1px solid #eef2f7;
+}
+
+.admin-page .admin-info-grid span {
+  color: #64748b;
+
+  font-size: 10px;
+
+  font-weight: 600;
+}
+
+.admin-page .admin-info-grid strong {
+  color: #172033;
+
+  font-size: 12px;
+
+  line-height: 1.4;
+
+  word-break: break-word;
+}
+
+/* =========================================================
+   DESCRIPTION
+========================================================= */
+
+.admin-page .admin-description {
+  margin-top: 12px;
+
+  padding: 12px;
+
+  border-radius: 9px;
+
+  background: #ffffff;
+
+  border: 1px solid #eef2f7;
+}
+
+.admin-page .admin-description > span {
+  color: #64748b;
+
+  font-size: 10px;
+
+  font-weight: 700;
+}
+
+.admin-page .admin-description p {
+  margin: 6px 0 0;
+
+  color: #475569;
+
+  font-size: 12px;
+
+  line-height: 1.6;
+}
+
+/* =========================================================
+   ASSIGNMENT
+========================================================= */
+
+.admin-page .assignment-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 10px;
+}
+
+.admin-page .assignment-item {
+  padding: 12px;
+
+  border-radius: 10px;
+
+  background: #ffffff;
+
+  border: 1px solid #e2e8f0;
+}
+
+.admin-page .assignment-item span {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: #64748b;
+
+  font-size: 10px;
+
+  font-weight: 600;
+}
+
+.admin-page .assignment-item strong {
+  color: #172033;
+
+  font-size: 12px;
+
+  line-height: 1.45;
+}
+
+/* =========================================================
+   ASSIGN PROBLEM SECTION
+========================================================= */
+
+.admin-page .admin-assignment-section {
+  background:
+    linear-gradient(
+      135deg,
+      #fffaf4,
+      #ffffff,
+      #f7fff9
+    );
+
+  border: 1px solid #e7eaf0;
+}
+
+.assignment-helper {
+  margin: -5px 0 14px;
+
+  color: #64748b;
+
+  font-size: 11px;
+}
+
+.admin-assignment-controls {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1.6fr auto;
+
+  gap: 10px;
+
+  align-items: center;
+}
+
+.assignment-select {
+  width: 100%;
+
+  height: 43px;
+
+  padding: 0 12px;
+
+  border: 1px solid #d7dee8;
+
+  border-radius: 9px;
+
+  background: #ffffff;
+
+  color: #334155;
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  outline: none;
+
+  cursor: pointer;
+}
+
+.assignment-select:focus {
+  border-color: #ff9933;
+
+  box-shadow:
+    0 0 0 3px rgba(255, 153, 51, 0.09);
+}
+
+.assignment-select:disabled {
+  background: #f1f5f9;
+
+  color: #94a3b8;
+
+  cursor: not-allowed;
+}
+
+/* Assign */
+
+.assign-problem-btn {
+  height: 43px;
+
+  padding: 0 18px;
+
+  border: none;
+
+  border-radius: 9px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ff9933,
+      #f97316
+    );
+
+  color: #ffffff;
+
+  font-size: 12px;
+
+  font-weight: 800;
+
+  cursor: pointer;
+
+  white-space: nowrap;
+
+  box-shadow:
+    0 6px 14px rgba(255, 153, 51, 0.20);
+
+  transition: all 0.2s ease;
+}
+
+.assign-problem-btn:hover {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 9px 18px rgba(255, 153, 51, 0.28);
+}
+
+/* =========================================================
+   COLLEGE / INDUSTRY COLLABORATION
+========================================================= */
+
+.admin-page .college-admin-card {
+  padding: 14px;
+
+  background: #ffffff;
+
+  border: 1px solid #e2e8f0;
+
+  border-radius: 11px;
+}
+
+/* =========================================================
+   GPS
+========================================================= */
+
+.admin-page .admin-location {
+  margin-bottom: 18px;
+
+  padding: 11px 14px;
+
+  border-radius: 10px;
+
+  background: #eff6ff;
+
+  border: 1px solid #bfdbfe;
+
+  color: #1e40af;
+
+  font-size: 11px;
+}
+
+.admin-page .admin-location strong {
+  color: #172554;
+}
+
+/* =========================================================
+   STATUS BUTTONS
+========================================================= */
+
+.admin-page .admin-status-buttons {
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 9px;
+}
+
+.admin-page .secondary-button,
+.admin-page .primary-button,
+.admin-page .delete-button {
+  min-height: 40px;
+
+  padding: 9px 14px;
+
+  border-radius: 9px;
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.admin-page .secondary-button {
+  background: #f8fafc;
+
+  color: #334155;
+
+  border: 1px solid #cbd5e1;
+}
+
+.admin-page .secondary-button:hover {
+  background: #e2e8f0;
+}
+
+.admin-page .primary-button {
+  border: none;
+
+  background:
+    linear-gradient(
+      135deg,
+      #15803d,
+      #16a34a
+    );
+
+  color: #ffffff;
+
+  box-shadow:
+    0 6px 14px rgba(22, 163, 74, 0.16);
+}
+
+.admin-page .primary-button:hover {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 9px 18px rgba(22, 163, 74, 0.24);
+}
+
+.admin-page .delete-button {
+  background: #fef2f2;
+
+  color: #b91c1c;
+
+  border: 1px solid #fecaca;
+}
+
+.admin-page .delete-button:hover {
+  background: #fee2e2;
+}
+
+/* =========================================================
+   RESOLVED BOX
+========================================================= */
+
+.admin-page .admin-resolved-box {
+  padding: 15px 17px;
+
+  border-radius: 12px;
+
+  background: #f0fdf4;
+
+  border: 1px solid #bbf7d0;
+
+  color: #166534;
+
+  font-size: 12px;
+
+  line-height: 1.6;
+}
+
+.admin-page .admin-resolved-box p {
+  margin: 6px 0 0;
+}
+
+.admin-page .admin-resolved-box strong {
+  color: #15803d;
+}
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.admin-page .empty-state {
+  padding: 55px 20px;
+
+  text-align: center;
+}
+
+.admin-page .empty-icon {
+  font-size: 48px;
+
+  margin-bottom: 10px;
+}
+
+.admin-page .empty-state h2 {
+  margin: 0 0 7px;
+
+  color: #172033;
+
+  font-size: 19px;
+}
+
+.admin-page .empty-state p {
+  margin: 0;
+
+  color: #64748b;
+
+  font-size: 13px;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1200px) {
+
+  .admin-page .stats-grid {
+    grid-template-columns:
+      repeat(3, 1fr);
+  }
+
+  .admin-page .admin-info-grid {
+    grid-template-columns:
+      repeat(2, 1fr);
+  }
+
+  .admin-page .assignment-grid {
+    grid-template-columns:
+      repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 850px) {
+
+  .admin-page {
+    padding: 18px;
+  }
+
+  .admin-page .dashboard-header {
+    padding: 22px;
+  }
+
+  .admin-page .stats-grid {
+    grid-template-columns:
+      repeat(2, 1fr);
+  }
+
+  .admin-filter-controls {
+    width: 100%;
+
+    flex-direction: column;
+  }
+
+  .admin-search-input,
+  .admin-filter {
+    width: 100%;
+  }
+
+  .admin-page .section-title-row {
+    align-items: stretch;
+
+    flex-direction: column;
+  }
+
+  .admin-assignment-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .assign-problem-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+
+  .admin-page {
+    padding: 14px;
+  }
+
+  .admin-page .dashboard-header h1 {
+    font-size: 23px;
+  }
+
+  .admin-page .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-page .complaint-top {
+    flex-direction: column;
+  }
+
+  .admin-page .admin-info-grid,
+  .admin-page .assignment-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-page .admin-complaint-card {
+    padding: 16px;
+  }
+
+  .admin-page .admin-status-buttons {
+    flex-direction: column;
+  }
+
+  .admin-page .secondary-button,
+  .admin-page .primary-button,
+  .admin-page .delete-button {
+    width: 100%;
+  }
+}
