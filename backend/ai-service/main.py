@@ -1,18 +1,33 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
+from models.model import (
+    ProblemRequest,
+    AnalyzeResponse,
+    DuplicateCheckRequest,
+    DuplicateCheckResponse,
+)
+
+from services.classification import classify_problem
+from services.priority_detection import detect_priority
+from services.expertise_matching import get_required_expertise
+from services.duplicate_detection import calculate_similarities
 
 from services.chatbot import get_chatbot_response
 
 
 app = FastAPI(
     title="Samadhan Setu AI Service",
-    description="AI Chatbot API for Samadhan Setu",
-    version="1.0.0"
+    description="AI analysis and chatbot service for Samadhan Setu",
+    version="1.0.0",
 )
 
 
-# Allow frontend to communicate with this API
+# =========================================================
+# CORS
+# =========================================================
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -22,20 +37,83 @@ app.add_middleware(
 )
 
 
-# Request format
+# =========================================================
+# CHAT REQUEST
+# =========================================================
+
 class ChatRequest(BaseModel):
     message: str
 
 
-# Home API
+# =========================================================
+# HOME
+# =========================================================
+
 @app.get("/")
-def home():
+def read_root():
     return {
         "message": "Samadhan Setu AI Service is running successfully"
     }
 
 
-# Chatbot API
+# =========================================================
+# PROBLEM ANALYSIS
+# =========================================================
+
+@app.post("/analyze", response_model=AnalyzeResponse)
+def analyze_problem(request: ProblemRequest):
+
+    # Classification
+    category, sub_category = classify_problem(
+        request.text
+    )
+
+    # Priority
+    priority, severity = detect_priority(
+        request.text
+    )
+
+    # Required expertise
+    expertise = get_required_expertise(
+        category,
+        request.text
+    )
+
+    # Return complete AI analysis
+    return {
+        "category": category,
+        "subCategory": sub_category,
+        "severity": severity,
+        "priority": priority,
+        "keywords": [],
+        "requiredExpertise": expertise,
+        "solutionDomain": category,
+    }
+
+
+# =========================================================
+# DUPLICATE DETECTION
+# =========================================================
+
+@app.post(
+    "/duplicate-check",
+    response_model=DuplicateCheckResponse
+)
+def duplicate_check(
+    request: DuplicateCheckRequest,
+):
+
+    result = calculate_similarities(
+        request.text
+    )
+
+    return result
+
+
+# =========================================================
+# CHATBOT
+# =========================================================
+
 @app.post("/chat")
 def chat(request: ChatRequest):
 
@@ -46,6 +124,8 @@ def chat(request: ChatRequest):
             "response": "Please enter a message."
         }
 
-    result = get_chatbot_response(user_message)
+    result = get_chatbot_response(
+        user_message
+    )
 
     return result
