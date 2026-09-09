@@ -56,6 +56,7 @@ const UserSchema = new mongoose.Schema(
   }
 );
 
+// Password hashing
 UserSchema.pre("save", async function () {
   if (!this.isModified("password")) {
     return;
@@ -69,6 +70,7 @@ UserSchema.pre("save", async function () {
   );
 });
 
+// JWT token
 UserSchema.methods.getSignedJwtToken = function () {
   return jwt.sign(
     {
@@ -82,6 +84,7 @@ UserSchema.methods.getSignedJwtToken = function () {
   );
 };
 
+// Password checking
 UserSchema.methods.matchPassword = async function (
   enteredPassword
 ) {
