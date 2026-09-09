@@ -1,24 +1,88 @@
-import { Link } from "react-router-dom";
+import React from "react";
+import { useLanguage } from "../context/LanguageContext";
+import { useAuth } from "../context/AuthContext";
 
 function Navbar() {
+  const { language, changeLanguage } =
+    useLanguage();
+
+  const { user, logout } = useAuth();
+
   return (
-    <nav className="navbar">
-      <div className="logo">
-        <Link to="/">SamadhanSetu</Link>
+    <header className="navbar">
+
+      <div className="navbar-left">
+
+        <div className="navbar-logo">
+          🏛️ SamadhanSetu
+        </div>
+
+        <span className="navbar-subtitle">
+          AI-Powered Civic Helpdesk
+        </span>
+
       </div>
 
-      <div className="nav-links">
-        <Link to="/">Home</Link>
-        <Link to="/citizen/report">Report Problem</Link>
-        <Link to="/citizen/dashboard">Citizen</Link>
-        <Link to="/university/dashboard">University</Link>
-        <Link to="/industry/dashboard">Industry</Link>
-        <Link to="/government/dashboard">Government</Link>
-        <Link to="/login" className="login-btn">
-          Login
-        </Link>
+      <div className="navbar-right">
+
+        {/* LANGUAGE */}
+
+        <select
+          className="language-select"
+          value={language}
+          onChange={(e) =>
+            changeLanguage(e.target.value)
+          }
+          aria-label="Select Language"
+        >
+          <option value="en">
+            🇬🇧 English
+          </option>
+
+          <option value="mr">
+            🇮🇳 मराठी
+          </option>
+
+          <option value="hi">
+            🇮🇳 हिन्दी
+          </option>
+        </select>
+
+        {/* USER */}
+
+        {user && (
+          <div className="navbar-user">
+            <div className="navbar-avatar">
+              👤
+            </div>
+
+            <div className="navbar-user-info">
+              <strong>
+                {user.name || "Citizen"}
+              </strong>
+
+              <small>
+                {user.city || "India"}
+              </small>
+            </div>
+          </div>
+        )}
+
+        {/* LOGOUT */}
+
+        {user && (
+          <button
+            type="button"
+            className="logout-button"
+            onClick={logout}
+          >
+            🚪 Logout
+          </button>
+        )}
+
       </div>
-    </nav>
+
+    </header>
   );
 }
 
