@@ -5,15 +5,25 @@ import React, {
   useState,
 } from "react";
 
+import {
+  loginUser,
+  registerUser,
+  getCurrentUser,
+  logoutUser,
+  normalizeRole,
+} from "../services/authService";
+
 const AuthContext = createContext(null);
 
 /* =========================================================
-   SAFE STORAGE HELPERS
+   STORAGE HELPERS
 ========================================================= */
 
 const getStoredUser = () => {
   try {
-    const savedUser = localStorage.getItem("complaintUser");
+    const savedUser =
+      localStorage.getItem("complaintUser") ||
+      localStorage.getItem("authUser");
 
     if (!savedUser) return null;
 
@@ -30,30 +40,49 @@ const saveLoggedInUser = (userData) => {
       "complaintUser",
       JSON.stringify(userData)
     );
-  } catch (error) {
-    console.error("Could not save logged in user:", error);
-  }
-};
 
-const saveRegisteredUser = (userData) => {
-  try {
     localStorage.setItem(
-      "registeredUser",
+      "authUser",
       JSON.stringify(userData)
     );
   } catch (error) {
-    console.error("Could not save registered user:", error);
+    console.error("Could not save logged in user:", error);
   }
 };
 
 const removeLoggedInUser = () => {
   try {
     localStorage.removeItem("complaintUser");
+    localStorage.removeItem("authUser");
   } catch (error) {
     console.error("Could not remove logged in user:", error);
   }
 };
 
+/* =========================================================
+   USER NORMALIZATION
+========================================================= */
+
+const normalizeUser = (userData) => {
+  if (!userData) return null;
+
+  return {
+    ...userData,
+
+    id: userData.id || userData._id || null,
+
+    role: normalizeRole(userData.role),
+
+    rewardPoints:
+      Number(userData.rewardPoints || 0),
+
+    resolvedComplaints:
+      Number(userData.resolvedComplaints || 0),
+
+    lastReward:
+      userData.lastReward || null,
+  };
+};
 
 /* =========================================================
    AUTH PROVIDER
@@ -64,254 +93,172 @@ export function AuthProvider({ children }) {
     return getStoredUser();
   });
 
+  /* =======================================================
+     VERIFY EXISTING LOGIN ON PAGE REFRESH
+  ======================================================= */
+
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+
+    if (!token) return;
+
+    let mounted = true;
+
+    const verifySession = async () => {
+      try {
+        const currentUser = await getCurrentUser();
+
+        if (!mounted) return;
+
+        const finalUser = normalizeUser(currentUser);
+
+        setUser(finalUser);
+        saveLoggedInUser(finalUser);
+
+        console.log(
+          "SESSION VERIFIED:",
+          finalUser
+        );
+      } catch (error) {
+        console.error(
+          "Session verification failed:",
+          error.message
+        );
+
+        localStorage.removeItem("authToken");
+        removeLoggedInUser();
+
+        if (mounted) {
+          setUser(null);
+        }
+      }
+    };
+
+    verifySession();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   /* =======================================================
      LOGIN
   ======================================================= */
 
-  const login = (email, password) => {
+  const login = async (email, password) => {
     const cleanEmail = email.trim().toLowerCase();
     const cleanPassword = password.trim();
 
-    console.log("LOGIN ATTEMPT:", cleanEmail);
-
-
-    /* =====================================================
-       DEMO ADMIN
-    ===================================================== */
-
-    if (
-      cleanEmail === "admin@samadhan.com" &&
-      cleanPassword === "admin123"
-    ) {
-      const adminUser = {
-        id: "ADMIN-001",
-        name: "SamadhanSetu Admin",
-        email: "admin@samadhan.com",
-        mobile: "9000000001",
-        city: "Solapur",
-        address: "",
-        role: "admin",
-        organizationName: "SamadhanSetu Administration",
-        organizationType: "Government",
-      };
-
-      setUser(adminUser);
-      saveLoggedInUser(adminUser);
-
-      console.log("ADMIN LOGIN SUCCESS");
-
-      return {
-        success: true,
-        user: adminUser,
-      };
-    }
-
-
-    /* =====================================================
-       DEMO COLLEGE
-    ===================================================== */
-
-    if (
-      cleanEmail === "college@samadhan.com" &&
-      cleanPassword === "college123"
-    ) {
-      const collegeUser = {
-        id: "COLLEGE-001",
-        name: "Karmala Engineering College",
-        email: "college@samadhan.com",
-        mobile: "9000000002",
-        city: "Solapur",
-        address: "Karmala, Solapur",
-        role: "college",
-        organizationName: "Karmala Engineering College",
-        organizationType: "College",
-        department: "Civil Engineering Department",
-      };
-
-      setUser(collegeUser);
-      saveLoggedInUser(collegeUser);
-
-      console.log("COLLEGE LOGIN SUCCESS");
-      console.log("USER ROLE:", collegeUser.role);
-
-      return {
-        success: true,
-        user: collegeUser,
-      };
-    }
-
-
-    /* =====================================================
-       DEMO INDUSTRY
-    ===================================================== */
-
-    if (
-      cleanEmail === "industry@samadhan.com" &&
-      cleanPassword === "industry123"
-    ) {
-      const industryUser = {
-        id: "INDUSTRY-001",
-        name: "Samadhan Industry Partner",
-        email: "industry@samadhan.com",
-        mobile: "9000000003",
-        city: "Solapur",
-        address: "",
-        role: "industry",
-        organizationName: "Samadhan Industry Partner",
-        organizationType: "Industry",
-        department: "Technical Solutions Team",
-      };
-
-      setUser(industryUser);
-      saveLoggedInUser(industryUser);
-
-      console.log("INDUSTRY LOGIN SUCCESS");
-      console.log("USER ROLE:", industryUser.role);
-
-      return {
-        success: true,
-        user: industryUser,
-      };
-    }
-
-
-    /* =====================================================
-       DEMO CITIZEN
-    ===================================================== */
-
-    if (
-      cleanEmail === "demo@gmail.com" &&
-      cleanPassword === "123456"
-    ) {
-      const citizenUser = {
-        id: "CITIZEN-DEMO-001",
-        name: "Demo Citizen",
-        email: "demo@gmail.com",
-        mobile: "9876543210",
-        city: "Solapur",
-        address: "",
-        role: "citizen",
-        rewardPoints: 0,
-        resolvedComplaints: 0,
-        lastReward: null,
-      };
-
-      setUser(citizenUser);
-      saveLoggedInUser(citizenUser);
-
-      console.log("CITIZEN LOGIN SUCCESS");
-
-      return {
-        success: true,
-        user: citizenUser,
-      };
-    }
-
-
-    /* =====================================================
-       REGISTERED CITIZEN
-    ===================================================== */
-
     try {
-      const savedRegisteredUser =
-        localStorage.getItem("registeredUser");
+      console.log(
+        "BACKEND LOGIN ATTEMPT:",
+        cleanEmail
+      );
 
-      if (savedRegisteredUser) {
-        const registeredUser =
-          JSON.parse(savedRegisteredUser);
+      const result = await loginUser(
+        cleanEmail,
+        cleanPassword
+      );
 
-        if (
-          registeredUser.email?.toLowerCase() ===
-            cleanEmail &&
-          registeredUser.password === cleanPassword
-        ) {
-          const finalUser = {
-            ...registeredUser,
-            role: registeredUser.role || "citizen",
-            rewardPoints:
-              registeredUser.rewardPoints || 0,
-            resolvedComplaints:
-              registeredUser.resolvedComplaints || 0,
-            lastReward:
-              registeredUser.lastReward || null,
-          };
+      const finalUser = normalizeUser(
+        result.user
+      );
 
-          setUser(finalUser);
-          saveLoggedInUser(finalUser);
+      setUser(finalUser);
+      saveLoggedInUser(finalUser);
 
-          console.log(
-            "REGISTERED USER LOGIN SUCCESS"
-          );
+      console.log(
+        "BACKEND LOGIN SUCCESS:",
+        finalUser
+      );
 
-          return {
-            success: true,
-            user: finalUser,
-          };
-        }
-      }
+      return {
+        success: true,
+        user: finalUser,
+        token: result.token,
+      };
     } catch (error) {
       console.error(
-        "Registered user login error:",
-        error
+        "BACKEND LOGIN FAILED:",
+        error.message
       );
+
+      return {
+        success: false,
+        message:
+          error.message ||
+          "Invalid email or password",
+      };
     }
-
-
-    /* =====================================================
-       INVALID LOGIN
-    ===================================================== */
-
-    return {
-      success: false,
-      message: "Invalid email or password",
-    };
   };
 
-
-  /* =========================================================
+  /* =======================================================
      REGISTER
-  ========================================================= */
+  ======================================================= */
 
-  const register = (userData) => {
-    const finalUser = {
-      id: `CITIZEN-${Date.now()}`,
+  const register = async (userData) => {
+    try {
+      console.log(
+        "BACKEND REGISTER ATTEMPT:",
+        userData.email
+      );
 
-      ...userData,
+      const result = await registerUser({
+        name: userData.name,
+        email: userData.email,
+        password: userData.password,
 
-      role: "citizen",
+        // Public registration creates Citizen accounts.
+        role: "Citizen",
+      });
 
-      rewardPoints: 0,
+      /*
+        Backend register returns a token.
+        We intentionally clear it so user goes to Login
+        after registration.
+      */
 
-      resolvedComplaints: 0,
+      logoutUser();
+      removeLoggedInUser();
 
-      lastReward: null,
-    };
+      setUser(null);
 
-    /*
-      IMPORTANT:
-      Save account as registered user.
-      Do NOT automatically keep user logged in.
-    */
+      const createdUser = normalizeUser(
+        result.user
+      );
 
-    saveRegisteredUser(finalUser);
+      console.log(
+        "BACKEND REGISTRATION SUCCESS:",
+        createdUser
+      );
 
-    removeLoggedInUser();
+      return {
+        success: true,
+        user: createdUser,
+        message:
+          "Registration successful. Please login.",
+      };
+    } catch (error) {
+      console.error(
+        "BACKEND REGISTRATION FAILED:",
+        error.message
+      );
 
-    setUser(null);
-
-    console.log("ACCOUNT CREATED:", finalUser);
-
-    return {
-      success: true,
-      user: finalUser,
-    };
+      return {
+        success: false,
+        message:
+          error.message ||
+          "Registration failed",
+      };
+    }
   };
 
-
-  /* =========================================================
+  /* =======================================================
      UPDATE USER
-  ========================================================= */
+     
+     Kept locally for existing Profile UI.
+     Backend profile update API can be connected later.
+  ======================================================= */
 
   const updateUser = (updatedData) => {
     if (!user) {
@@ -327,16 +274,7 @@ export function AuthProvider({ children }) {
     };
 
     setUser(updatedUser);
-
     saveLoggedInUser(updatedUser);
-
-    /*
-      Only citizens have registered account data
-    */
-
-    if (updatedUser.role === "citizen") {
-      saveRegisteredUser(updatedUser);
-    }
 
     return {
       success: true,
@@ -344,10 +282,9 @@ export function AuthProvider({ children }) {
     };
   };
 
-
-  /* =========================================================
+  /* =======================================================
      REWARD POINTS
-  ========================================================= */
+  ======================================================= */
 
   const addRewardPoints = (
     points,
@@ -356,7 +293,7 @@ export function AuthProvider({ children }) {
     if (!user) return;
 
     const currentPoints =
-      user.rewardPoints || 0;
+      Number(user.rewardPoints || 0);
 
     const updatedUser = {
       ...user,
@@ -365,96 +302,56 @@ export function AuthProvider({ children }) {
         currentPoints + Number(points),
 
       lastReward: {
-        points,
+        points: Number(points),
         reason,
         date: new Date().toLocaleString(),
       },
     };
 
     setUser(updatedUser);
-
     saveLoggedInUser(updatedUser);
-
-    if (updatedUser.role === "citizen") {
-      saveRegisteredUser(updatedUser);
-    }
   };
 
-
-  /* =========================================================
+  /* =======================================================
      RESET REWARDS
-  ========================================================= */
+  ======================================================= */
 
   const resetRewards = () => {
     if (!user) return;
 
     const updatedUser = {
       ...user,
-
       rewardPoints: 0,
-
       resolvedComplaints: 0,
-
       lastReward: null,
     };
 
     setUser(updatedUser);
-
     saveLoggedInUser(updatedUser);
-
-    if (updatedUser.role === "citizen") {
-      saveRegisteredUser(updatedUser);
-    }
 
     window.dispatchEvent(
       new Event("rewardReset")
     );
   };
 
-
-  /* =========================================================
+  /* =======================================================
      LOGOUT
-  ========================================================= */
+  ======================================================= */
 
   const logout = () => {
-    setUser(null);
-
+    logoutUser();
     removeLoggedInUser();
+
+    localStorage.removeItem("registeredUser");
+
+    setUser(null);
 
     console.log("USER LOGGED OUT");
   };
 
-
-  /* =========================================================
-     SYNC REWARD RESET
-  ========================================================= */
-
-  useEffect(() => {
-    const handleRewardReset = () => {
-      const savedUser = getStoredUser();
-
-      if (savedUser) {
-        setUser(savedUser);
-      }
-    };
-
-    window.addEventListener(
-      "rewardReset",
-      handleRewardReset
-    );
-
-    return () => {
-      window.removeEventListener(
-        "rewardReset",
-        handleRewardReset
-      );
-    };
-  }, []);
-
-
-  /* =========================================================
+  /* =======================================================
      AUTH CONTEXT
-  ========================================================= */
+  ======================================================= */
 
   return (
     <AuthContext.Provider
@@ -472,7 +369,6 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
-
 
 /* =========================================================
    USE AUTH
