@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -18,47 +17,40 @@ function Register() {
   });
 
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    if (error) {
+      setError("");
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
     setError("");
 
-    const {
-      name,
-      email,
-      mobile,
-      city,
-      address,
-      password,
-      confirmPassword,
-    } = formData;
+    const name = formData.name.trim();
+    const email = formData.email.trim().toLowerCase();
+    const mobile = formData.mobile.trim();
+    const city = formData.city.trim();
+    const address = formData.address.trim();
+    const password = formData.password;
+    const confirmPassword = formData.confirmPassword;
 
-    if (
-      !name.trim() ||
-      !email.trim() ||
-      !mobile.trim() ||
-      !city.trim() ||
-      !password.trim()
-    ) {
+    if (!name || !email || !mobile || !city || !password) {
       setError("Please fill all required fields.");
       return;
     }
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-
-    if (password.length < 6) {
-      setError("Password must contain at least 6 characters.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Please enter a valid email address.");
       return;
     }
 
@@ -67,24 +59,54 @@ function Register() {
       return;
     }
 
-    const result = register({
-      name: name.trim(),
-      email: email.trim(),
-      mobile: mobile.trim(),
-      city: city.trim(),
-      address: address.trim(),
-      password,
-    });
+    if (password.length < 6) {
+      setError("Password must contain at least 6 characters.");
+      return;
+    }
 
-    if (result.success) {
-      // Logout current session after registration
-      localStorage.removeItem("complaintUser");
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
 
-      alert("Account created successfully! Please login.");
+    setLoading(true);
 
-      navigate("/login", { replace: true });
-    } else {
-      setError(result.message || "Registration failed.");
+    try {
+      const result = await register({
+        name,
+        email,
+        mobile,
+        city,
+        address,
+        password,
+        role: "Citizen",
+      });
+
+      if (result?.success) {
+        localStorage.removeItem("complaintUser");
+        localStorage.removeItem("authUser");
+        localStorage.removeItem("authToken");
+
+        alert("Account created successfully! Please login.");
+
+        navigate("/login", {
+          replace: true,
+          state: {
+            registeredEmail: email,
+          },
+        });
+      } else {
+        setError(result?.message || "Registration failed.");
+      }
+    } catch (err) {
+      console.error("Registration error:", err);
+
+      setError(
+        err?.message ||
+          "Registration failed. Please check your backend server."
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -92,10 +114,7 @@ function Register() {
     <div className="auth-page">
       <div className="auth-card register-card">
 
-        {/* Logo */}
-        <div className="auth-logo">
-          🏛️
-        </div>
+        <div className="auth-logo">🏛️</div>
 
         <h1>Create Account</h1>
 
@@ -103,7 +122,6 @@ function Register() {
           Create your SamadhanSetu citizen account.
         </p>
 
-        {/* Error */}
         {error && (
           <div className="auth-error">
             ❌ {error}
@@ -112,7 +130,6 @@ function Register() {
 
         <form onSubmit={handleSubmit}>
 
-          {/* Name */}
           <div className="form-group">
             <label>
               Full Name <span>*</span>
@@ -124,10 +141,11 @@ function Register() {
               placeholder="Enter your full name"
               value={formData.name}
               onChange={handleChange}
+              autoComplete="name"
+              required
             />
           </div>
 
-          {/* Email */}
           <div className="form-group">
             <label>
               Email <span>*</span>
@@ -139,10 +157,11 @@ function Register() {
               placeholder="Enter your email"
               value={formData.email}
               onChange={handleChange}
+              autoComplete="email"
+              required
             />
           </div>
 
-          {/* Mobile */}
           <div className="form-group">
             <label>
               Mobile Number <span>*</span>
@@ -153,12 +172,23 @@ function Register() {
               name="mobile"
               placeholder="Enter 10-digit mobile number"
               value={formData.mobile}
-              onChange={handleChange}
-              maxLength="10"
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, "");
+
+                setFormData((prev) => ({
+                  ...prev,
+                  mobile: value.slice(0, 10),
+                }));
+
+                setError("");
+              }}
+              maxLength={10}
+              inputMode="numeric"
+              autoComplete="tel"
+              required
             />
           </div>
 
-          {/* City */}
           <div className="form-group">
             <label>
               City <span>*</span>
@@ -170,10 +200,10 @@ function Register() {
               placeholder="Enter your city"
               value={formData.city}
               onChange={handleChange}
+              required
             />
           </div>
 
-          {/* Address */}
           <div className="form-group">
             <label>Address</label>
 
@@ -182,11 +212,10 @@ function Register() {
               placeholder="Enter your address"
               value={formData.address}
               onChange={handleChange}
-              rows="3"
+              rows={3}
             />
           </div>
 
-          {/* Password */}
           <div className="form-group">
             <label>
               Password <span>*</span>
@@ -198,10 +227,11 @@ function Register() {
               placeholder="Create password"
               value={formData.password}
               onChange={handleChange}
+              autoComplete="new-password"
+              required
             />
           </div>
 
-          {/* Confirm Password */}
           <div className="form-group">
             <label>
               Confirm Password <span>*</span>
@@ -213,23 +243,24 @@ function Register() {
               placeholder="Confirm password"
               value={formData.confirmPassword}
               onChange={handleChange}
+              autoComplete="new-password"
+              required
             />
           </div>
 
           <button
             type="submit"
             className="auth-submit-btn"
+            disabled={loading}
           >
-            📝 Create Account
+            {loading
+              ? "⏳ Creating Account..."
+              : "📝 Create Account"}
           </button>
-
         </form>
 
-        {/* Login */}
         <div className="create-account-section">
-          <p>
-            Already have an account?
-          </p>
+          <p>Already have an account?</p>
 
           <Link
             to="/login"
@@ -245,4 +276,3 @@ function Register() {
 }
 
 export default Register;
-
